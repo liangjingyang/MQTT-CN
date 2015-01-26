@@ -5,7 +5,7 @@
 
 ###1.1 MQTT的组织结构
 
-本规范分为三个主要章节：
+本规范分为七个主要章节：
 
 - 第一章 \- 介绍
 - 第二章 \- MQTT控制包格式
@@ -315,11 +315,11 @@ PUBACK，PUBREC，PUBREL包的唯一标识必须和对应的PUBLISH相同[MQTT-2
 
     有这种可能，客户端发送一个PUBLISH包，唯一标识位0x1234，在收到相应的PUBACK之前，接着先收到了一个服务端发来的不同的PUBLISH包，唯一标识同样是0x1234。
 
-    >Client                     Server
-    >PUBLISH Packet Identifier = 0x1234 \-\>
-    >\<\- PUBLISH Packet Identifier = 0x1234
-    >PUBACK Packet Identifier = 0x1234 \-\>
-    >\<\-PUBACK Packet Identifier = 0x1234
+>Client                     Server
+>PUBLISH Packet Identifier = 0x1234 \-\>
+>\<\- PUBLISH Packet Identifier = 0x1234
+>PUBACK Packet Identifier = 0x1234 \-\>
+>\<\-PUBACK Packet Identifier = 0x1234
 
 ### 2.4 载荷
 
