@@ -240,13 +240,13 @@ RETAIN3 = PUBLISH保留标识
 编码一个非负整数（X）为可变长度编码结构的算法如下：
     
     do
-	  encodedByte = X MOD 128
-	  X = X DIV 128
-	 // if there are more data to encode, set the top bit of this byte
-	 if ( X > 0 )
-	     encodedByte = encodedByte OR 128
-	 endif
-	     'output' encodedByte
+        encodedByte = X MOD 128
+        X = X DIV 128
+        // if there are more data to encode, set the top bit of this byte
+        if ( X > 0 )
+            encodedByte = encodedByte OR 128
+        endif
+            'output' encodedByte
     while ( X > 0 )
 
 MOD是取模操作（C语言的%），DIV是整除操作（C语言的/），OR是按位或操作（C语言的|）。
@@ -258,11 +258,11 @@ MOD是取模操作（C语言的%），DIV是整除操作（C语言的/），OR�
     multiplier = 1
     value = 0
     do
-	 encodedByte = 'next byte from stream'
-	 value += (encodedByte AND 127) * multiplier
-	 multiplier *= 128
-	 if (multiplier > 128*128*128)
-	    throw Error(Malformed Remaining Length)
+        encodedByte = 'next byte from stream'
+        value += (encodedByte AND 127) * multiplier
+        multiplier *= 128
+        if (multiplier > 128*128*128)
+            throw Error(Malformed Remaining Length)
     while ((encodedByte AND 128) != 0)
 
 AND是按位与操作（C语言的&）。
