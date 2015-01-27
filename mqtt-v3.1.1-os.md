@@ -343,6 +343,8 @@ PUBACK，PUBREC，PUBREL包的唯一标识必须和对应的PUBLISH相同[MQTT-2
     |PINGRESP                   |None
     |DISCONNECT                 |None
 
+----
+
 ## 3 MQTT控制包
 
 ### 3.1 CONNECT - 客户端请求连接服务器
@@ -401,7 +403,172 @@ CONNECT包的可变包头由四个字段按照如下顺序构成：协议名字�
 
 8位无符号值表示客户端的版本等级。3.1.1版本的协议等级是4（0x04）。如果协议等级不被服务端支持，服务端必须响应一个包含代码0x01（不接受的协议等级）CONNACK包，然后断开和客户端的连接[MQTT-3.1.2-2]。
 
+##### 3.1.2.3 连接标识
 
+连接标识包含了一些参数来指定MQTT的连接行为，它也能表示负载中的字段是否存在。
 
+    Figure 3.4 - Connect Flag bits
+    
+    |Bit 	|7 			|6 		|5 		|4 |3 		|2 		|1 		|0
+    | 		|User Name Flag 	|Password Flag 	|Will Retain 	|Will QoS 	|Will Flag 	|Clean Session 	|Reserved
+    |byte 8 	|X 			|X 		|X 		|X |X 		|X 		|X 		|0
 
+服务端必须验证CONNECT控制包的预留字段是否为0，如果不为0断开与客户端的连接[MQTT-3.1.2-3].
 
+##### 3.1.2.4 Clean Session
+
+位置：连接标识字节的bit 1。
+
+这个bit指明了会话状态的处理方式。
+
+客户端和服务端可以存储会话状态，以便能够在一系列的网络连接中可靠的传递消息。这个bit用来控制会话状态的生命周期。
+
+如果CleanSession被设置为0，服务器必须根据当前的会话状态恢复与客户端的通信（客户端的唯一标识作为会话的标识）。如果没有与客户端唯一标识相关的绘画，服务端必须创建一个新的会话。客户端和服务端在断开连接后必须存储会话[MQTT-3.1.2-4]。当CleanSession为0的会话断开后，服务器还必须将所有和客户端订阅相关的QoS1和QoS2的消息作为会话状态的一部分存储起来[MQTT-3.1.2-5]。也可以选择把QoS0的消息也存储起来。
+
+如果CleanSession被设置为1，客户端和服务端必须断开之前的会话启动一个新的会话。只要网络连接存在会话就存在。一个会话的状态数据一定不能被随后的会话复用[MQTT-3.1.2-6]。
+
+客户端会话状态的构成：
+
+- 已经发送到服务端，但没有收到确认的QoS 1和QoS 2消息
+- 接收到的从服务端QoS 2消息，还没有收到确认的
+
+服务端会话状态的构成：
+
+- 即使会话状态为空，会话本身也必须存在。
+- 客户端的订阅。
+- 发送到客户端的但没有得到确认的QoS 1和QoS 2消息。
+- 等待发送到客户端的QoS 1和QoS 2消息。
+- 从客户端收到的QoS 2消息，但还没有确认的。
+- 可选项，等待发送到客户端的QoS 0消息。
+
+在服务端，保留消息不属于会话状态，它们不必在会话结束的时候被删除。
+
+状态的存储细节和限制详见4.1节。
+
+当CleanSession被设置为1，客户端和服务端不需要自动处理状态的删除。
+
+**非规范注释**
+
+为了确保在故障的情况下状态一致，客户端应该将CleanSession设置为1重复尝试连接，直到连接成功。
+
+**非规范注释**
+
+通常，客户端应该一直使用CleanSession 0或一直使用CleanSession 1来建立连接，而不要切换来切换去。选择哪个由应用程序决定。使用CleanSession 1的客户端不会收到旧的应用消息，而且每次连接都要重新订阅感兴趣的话题。客户端使用CleanSession 0会收到上次短线之后的QoS 1和QoS 2的消息。因此，为了确保消息不会再断线时丢失，使用QoS 1或QoS 2并把CleanSession设为0。
+
+**非规范注释**
+
+当客户端使用CleanSession 0建立了连接，在断开连接后，就要求服务端保存它的MQTT会话状态。如果客户端打算在晚些时候重连服务端，那么应该将CleanSession设置为0。当客户端认为没有进一步使用会话的必要了，它应该最后再连接一次服务器，将CleanSession设置为1，然后断开连接。
+
+##### 3.1.2.5 Will Flag
+
+位置：连接标识的bit 2
+
+如果Will Flag被设置为1，这意味着，如果连接请求被接受，服务端必须存储一个Will Message，并和网络连接关联起来。之后在网络连接断开的时候必须发布Will Message，除非服务端收到DISCONNECT包删掉了Will Message[MQTT-3.1.2-8]。
+
+Will Message会在某些情况下发布，包括但不限于：
+
+- 服务端发现I/O错误或网络失败。
+- 客户端在Keep Alive时间内通信失败。
+- 客户端没有发送DISCONNECT包就关闭了网络连接。
+- 服务端因协议错误关闭了网络连接。
+
+如果Will Flag被设置为1，连接标识中的Will QoS和Will Retain字段将会被服务端用到，而且Will Topic和Will Message字段必定会出现在载荷中[MQTT-3.1.2-9]。
+
+Will Message必须从服务端存储的会话状态中移除，一旦被发不过，或者服务端收到了客户端的DISCONNECT包[MQTT-3.1.2-10]。
+
+如果Will Flag被设置为0，连接标识中的Will QoS和Will Retain字段必须设置为零，并且Will Topic和Will Message字段不能够出现在载荷中[MQTT-3.1.2-11]。
+
+如果Will Flag被设置为0，Will Message将不会再网络连接结束的时候发布[MQTT-3.1.2-12]。
+
+服务端应该尽快发布Will Message。例如服务端关闭或故障，只能推迟Will Message的发布，直到服务端重启。如果这种情况发生，就会出现从服务器故障到Will Message被发布之间的延迟。
+
+##### 3.1.2.6 Will QoS
+
+位置：连接标识的bit 4和3
+
+这两个bit表示发布Will Message时使用QoS的等级。
+
+如果Will Flag设置为0，那么Will QoS也必须设置为0[MQTT-3.1.2-13].
+
+如果Will Flag设置为1，那么Will QoS的值可是是0（0x00），1（0x01），2（0x02）。一定不会是3（0x03）[MQTT-3.1.2-14]。
+
+##### 3.1.2.7 Will Retain
+
+位置：连接标识的bit 5。
+
+这个bit表示Will Message在发布之后是否需要保留。
+
+如果Will Flag设置为0，那么Will Retain必须是0[MQTT-3.1.2-15]。
+
+如果Will Flag设置为1：
+
+- 如果Will Retain设置为0，那么服务端必须发布Will Message，不必保存[MQTT-3.1.2-16]。
+- 如果Will Retain设置为1，那么服务端必须发布Will Message，并保存[MQTT-3.1.2-17]。
+
+##### 3.1.2.8 User Name Flag
+
+位置：连接标识的bit 7。
+
+如果User Name Flag设置为0，那么用户名不必出现在载荷中[MQTT-3.1.2-18]。
+
+如果User Name Flag设置为1，那么用户名必须出现在载荷中[MQTT-3.1.2-19]。
+
+##### 3.1.2.9 Password Flag
+
+位置：连接标识的bit 6。
+
+如果Password Flag设置为0，那么密码不必出现在载荷中[MQTT-3.1.2-20]。
+
+如果Password Flag设置为1，那么密码必须出现在载荷中[MQTT-3.1.2-21]。
+
+如果User Name Flag设置为0，那么Password Flag必须设置为0[MQTT-3.1.2-22]。
+
+##### 3.1.2.10 Keep Alive
+
+    Figure 3.5 Keep Alive bytes
+
+    |Bit 	|7 |6 |5 |4 |3 |2 |1 |0
+    |byte 9 	|Keep Alive MSB
+    |byte 10 	|Keep Alive LSB
+
+Keep Alive是以秒为单位的时间间隔。用16-bit字表示，它指的是客户端从发送完成一个控制包到开始发送下一个的最大时间间隔。客户端有责任确保两个控制包发送的间隔不能超过Keep Alive的值。如果没有其他控制包可发，客户端必须发送PINGREQ包[MQTT-3.1.2-23]。
+
+客户端可以在任何时间发送PINGREQ包，不用关心Keep Alive的值，用PINGRESP来判断与服务端的网络连接是否正常。
+
+如果Keep Alive的值非0，而且服务端在一个半Keep Alive的周期内没有收到客户端的控制包，服务端必须作为网络故障断开网络连接[MQTT-3.1.2-24]。
+
+如果客户端在发送了PINGREQ后，在一个合理的时间都没有收到PINGRESP包，客户端应该关闭和服务端的网络连接。
+
+Keep Alive的值为0，就关闭了维持的机制。这意味着，在这种情况下，服务端不会断开静默的客户端。
+
+注意，服务端在任何时候都可以断开它认为不活跃或没有响应的客户端，而不需要遵照客户端提供的Keep Alive。
+
+**非规范注释**
+
+Keep Alive的实际值是由应用程序指定的；典型的是几分钟。最大值是18小时12分钟15秒。
+
+##### 3.1.2.11 可变包头的非规范用例
+
+    Figure 3.6 - Variable header non normative example
+
+    | 	 	|Description 		|7 6 5 4 3 2 1 0
+    |Protocol Name
+    |byte 1 	|Length MSB (0) 	|0 0 0 0 0 0 0 0
+    |byte 2 	|Length LSB (4) 	|0 0 0 0 0 1 0 0
+    |byte 3 	|‘M’ 			|0 1 0 0 1 1 0 1
+    |byte 4 	|‘Q’ 			|0 1 0 1 0 0 0 1
+    |byte 5 	|‘T’ 			|0 1 0 1 0 1 0 0
+    |byte 6 	|‘T’ 			|0 1 0 1 0 1 0 0
+    |Protocol Level
+    |byte 7 	|Level (4) 		|0 0 0 0 0 1 0 0
+    |Connect Flags 
+    |byte 8 	|User Name Flag (1) 	|1 1 0 0 1 1 1 0
+    | 		|Password Flag (1)
+    | 		|Will Retain (0)
+    | 		|Will QoS (01)
+    | 		|Will Flag (1)
+    | 		|Clean Session (1)
+    | 		|Reserved (0)
+    |Keep Alive
+    |byte 9  	|Keep Alive MSB (0) 	|0 0 0 0 0 0 0 0
+    |byte 10 	|Keep Alive LSB (10) 	|0 0 0 0 1 0 1 0
