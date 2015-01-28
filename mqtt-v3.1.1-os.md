@@ -572,3 +572,95 @@ Keep Alive的实际值是由应用程序指定的；典型的是几分钟。最�
     |Keep Alive
     |byte 9  	|Keep Alive MSB (0) 	|0 0 0 0 0 0 0 0
     |byte 10 	|Keep Alive LSB (10) 	|0 0 0 0 1 0 1 0
+
+#### 3.1.3 载荷
+
+CONNECT包的载荷可以包含一个或多个带有长度前缀的字段，这取决于可变包头的标识。这些字段，如果存在，必须按照这样的顺序，客户端唯一标识，Will Topic，Will Message，User Name，Password[MQTT-3.1.3-1]。
+
+##### 3.1.3.1 客户端标识
+
+客户端标识（ClientId）可以帮助服务端识别客户端。每一个客户端连接服务端都带有唯一的ClientId。客户端和服务端都必须用ClientId来标识他们所持有的相应的MQTT会话的状态[MQTT-3.1.3-2]。
+
+客户端标识（ClientId）必须存在，而且必须是CONNECT包载荷的第一个字段[MQTT-3.1.3-3]。
+
+ClientId必须是1.5.3节定义的UTF-8编码的字符串[MQTT-3.1.3-4]。
+
+服务端必须能够接纳的ClientId是长度为1到23的UTF-8编码的字节，而且只包含字符“0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ”[MQTT-3.1.3-5]。
+
+服务端也可以接纳大于23个字节编码的ClientId。服务端也可以允许ClientId包含上述字符之外的字符。
+
+服务端可以允许客户端提供0字节长度的ClientId，但是如果这样，服务端必须把这也当作一个特例，作为客户端的唯一ClientId。然后就当作客户端已经提供了唯一ClientId，接着处理CONNECT包[MQTT-3.1.3-6]。
+
+如果客户端提供了一个0字节的CLientId，客户端必须设置CleanSession为1[MQTT-3.1.3-7]。
+
+如果客户端提供了一个0字节的ClientId，而且CleanSession设置为0，那么服务端必须响应一个CONNACK包，带有代码0x02（标识被拒绝），然后关闭网络连接[MQTT-3.1.3-8].
+
+如果服务端拒绝了ClientId，必须返回一个CONNACK包，带有代码0x02（标识被拒绝），然后关闭网络连接[MQTT-3.1.3-9]。
+
+**非规范注释**
+
+客户端实现应该提供一个便利的方法生成随机ClientId。当CleanSession设置为0的时候，这种随机的方法应该尽量避免。
+
+##### 3.1.3.2 Will Topic
+
+如果Will Flag设置为1，Will Topic是载荷的下一个字段。Will Topic必须是1.5.3节定义的UTF-8编码的字符串[MQTT-3.1.3-10]。
+
+##### 3.1.3.3 Will Message
+
+如果Will Flag设置为1，Will Message是载荷的iayige字段。Will Message定义了3.1.2.5节中描述的将要发布给Will Topic的应用消息。这个字段的前两个字节表示长度，后面是一段字节序列。长度代表字节序列的字节数，不包括长度本身的两个字节。
+
+当Will Message被发布给Will Topic的时候，只是包括字节序列那部分数据，不包含代表长度的头两个字节。
+
+##### 3.1.3.4 User Name
+
+如果User Name Flag设置为1，这将是载荷的下一个字段。User Name必须是1.5.3节定义的UTF-8编码的字符串[MQTT-3.1.3-11]。服务端根据它来认证和授权。
+
+##### 3.1.3.5 Password
+
+如果Password Flag设置为1，这将是载荷的下一个字段。Password字段包含0-65535字节的二进制数据，数据前面有两个字节来定义二进制数据占用的字节数（不包括这两个字节本身）。
+
+    Figure 3.7 - Password bytes
+
+    |Bit 		|7 	|6 	|5 	|4 	|3 	|2 	|1 	|0
+    |byte 1 		|Data length MSB
+    |byte 2 		|Data length LSB
+    |byte 3 ….  	|Data, if length > 0.
+
+#### 3.1.4 响应
+
+注意，服务端可能在同一个TCP端口或其他网络终端会支持多种协议（包括本协议的早期版本）。如果服务端确认协议是MQTT 3.1.1，那么它必须确认下列连接请求。
+
+1. 如果服务端没有收到CONNECT包，在网络连接建立后的一个合理的时间内，服务端应该关闭网络连接。
+2. 服务端必须验证CONNECT包是否符合3.1节的内容，如果不符合，关闭网络连接，不需要发送CONNACK[MQTT-3.1.4-1].
+3. 服务端可以对CONNECT包的内容进行进一步的限制验证，可以检查认证和授权。如果任何检查失败，应该发送适合的CONNACK包，带有3.2节描述的非0代码，然后关闭网络连接。
+
+如果验证成功，服务端执行下列步骤。
+
+1. 如果ClientId标识的客户端已经连接了服务端，服务端必须断开已经存在的客户端[MQTT-3.1.4-2]。
+2. 服务端必须处理3.1.2.4节描述的CleanSession[MQTT-3.1.4-3]。
+3. 服务端必须用一个包含返回码0的CONNACK包作为CONNECT包的确认。
+4. 启动消息传递和维持监测。
+
+客户端可以在发送CONNECT包之后立马发送其他控制包；客户端不需要等待CONNACK包。如果服务端拒绝了CONNECT，不要处理客服端在CONNECT包之后发送的任何数据[MQTT-3.1.4-5]。
+
+**非规范注释**
+
+客户端通常等待CONNACK包，然而，如果客户端能够灵活地在收到CONNACK包之前就发送控制包，将会简化客户端的实现，因为不需要关心连接状态。客户端要明白的是在没有收到CONNACK包之前发送的数据，如果服务端拒绝连接的话，将不会被处理。
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
