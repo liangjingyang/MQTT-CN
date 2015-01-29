@@ -659,7 +659,80 @@ ClientId必须是1.5.3节定义的UTF-8编码的字符串[MQTT-3.1.3-4]。
 >客户端通常等待CONNACK包，然而，如果客户端能够灵活地在收到CONNACK包之前就发送控制包，将会简化客户端的实现，因为不需要关心连接状态。客户端要明白的是在没有收到CONNACK包之前发送的数据，如果服务端拒绝连接的话，将不会被处理。
 
 
+#### 3.2 CONNACK - 确认收到连接请求
 
+CONNACK包是服务端发送的用来相应客户端CONNECT包的一种数据包。从服务端发往客户端的第一个包一定是CONNACK包[MQTT-3.2.0-1]。
+
+如果客户端在一个合理的时间内没有收到服务端的CONNACK包，客户端应该关闭网络连接。“合理”的时间取决于应用的类型和沟通。
+
+##### 3.2.1 固定包头
+
+固定包头的结构如下表所示Figure 3.8 - CONNACK Packet fixed header。
+
+    Figure 3.8 - CONNACK Packet fixed header
+
+    |Bit 	|7 6 5 4 			|3 2 1 0
+    |byte 1 	|MQTT Control Packet Type (2) 	|Reserved
+    | 		|0 0 1 0 			|0 0 0 0
+    |byte 2 	|Remaining Length (2)
+    | 		|0 0 0 0 			|0 0 1 0
+
+**剩余长度字段**
+
+这个是可变包头的长度。对于CONNACK包来说这个值是2。
+
+#### 3.2.2 可变包头
+
+可变包头的格式如下表 Figure 3.9 - CONNACK Packet variable header。
+
+    Figure 3.9 - CONNACK Packet variable header
+
+    | 		|Description 	|7 |6 |5 |4 |3 |2 |1 	|0
+    |Connect Acknowledge Flags 	|Reserved 		|SP1
+    |byte 1 			|0 |0 |0 |0 |0 |0 |0 	|X
+    |Connect Return code
+    |byte 2 			|X |X |X |X |X |X |X 	|X
+
+##### 3.2.2.1 连接确认标识
+
+字节1是“连接确认标识”。位7-1是保留位必须设置为0。
+
+位0（SP1）是Session Present标识
+
+##### 3.2.2.2 Session Present
+
+位置：连接确认标识的位0。
+
+如果服务端接受了一个CleanSession设置为1的连接，服务端必须将CONNACK包中的Session Present设置为0，并且CONNACK包的返回码也设置为0。
+
+如果服务端接受了一个CleanSession设置为0的连接，Session Present的值取决于服务端是否已经存储了客户端Id对应的绘画状态。如果服务端已经存储了会话状态，CONNACK包中的Session Present必须设置为1[MQTT-3.2.2-2]。如果服务端没有存储会话状态，CONNACK包的Session Present必须设置为0。另外CONNACK包中的返回码必须设为0[MQTT-3.2.2-3]。
+
+Session Present标识使得客户端能够建立连接，不论客户端和服务端在是否已经存储了会话状态上达成共识。
+
+一旦会话的初始设置完成，存储会话状态的客户端会期望服务端也存储了会话状态。万一Session Present的值不符合预期，客户端可以选择是继续处理这个会话还是断开连接。客户端可以通过断开连接，把CleanSession设置为1重新连接，然后再断开连接，来决定客户端和服务端的会话状态。
+
+##### 3.2.2.3 连接返回码
+
+可变包头的第二个字节。
+
+无符号单字节连接返回码字段的值如下表所列 Table 3.1 - Connect Return code values。如果服务端收到了一个格式良好的CONNECT包，但是服务端由于某种原因不能处理，那么服务端应该尝试发送一个带有非零返回码的CONNACK包。如果服务端发送了一个包含非零返回码的CONNACK包，必须关闭网络连接[MQTT-3.2.2-5]。
+
+    Table 3.1 - COnnect Return code values
+
+    |Value 	|Return Code Response 					|Description
+    |0 		|0x00 Connection Accepted 				|Connection accepted
+    |1 		|0x01 Connection Refused, unacceptable protocol version |The Server does not support the level of the MQTT protocol requested by the Client
+    |2 		|0x02 Connection Refused, identifier rejected 		|The Client identifier is correct UTF-8 but not allowed by the Server
+    |3 		|0x03 Connection Refused, Server unavailable 		|The Network Connection has been made but the MQTT service is unavailable
+    |4 		|0x04 Connection Refused, bad user name or password 	|The data in the user name or password is malformed
+    |5 		|0x05 Connection Refused, not authorized 		|The Client is not authorized to connect
+    |6-255 	|							|Reserved for future use
+
+如果上表中的返回码都不适用，那么服务端必须直接关闭网络连接，不发送CONNACK包[MQTT-3.2.2-6]。
+
+#### 3.2.3 载荷
+
+CONNACK包没有载荷。
 
 
 
