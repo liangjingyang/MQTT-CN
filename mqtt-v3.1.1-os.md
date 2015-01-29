@@ -734,6 +734,20 @@ Session Present标识使得客户端能够建立连接，不论客户端和服�
 
 CONNACK包没有载荷。
 
+### 3.3 PUBLISH - 发布消息
+
+PUBLISH控制包可以从服务端发送给客户端也可以从客户端发送给服务端，来运送应用消息。
+
+#### 3.3.1 固定包头
+
+Figure 3.10 - PUBLISH Packet fixed header 展现了固定包头的格式：
+
+    Figure 3.10 - PUBLISH Packet fixed header
+
+    |Bit 	|7 	|6 	|5 	|4 	|3 		|2 	|1 	|0
+    |byte 1 	|MQTT Control Packet type (3) 	|DUP flag 	|QoS level 	|RETAIN
+    | 		|0 	|0 	|1 	|1	|X 		|X 	|X 	|X
+    |byte 2 	|Remaining Length
 
 
 
