@@ -871,6 +871,139 @@ PUBLISH包的接收方必须根据Table 3.4 - Expected Publish Packet response�
 
 如果服务器实现没有授权客户端执行PUBLISH；没有方法通知那个客户端。服务端要么根据QoS规则做出积极的确认，要么就关闭网络连接[MQTT-3.3.5-2]。
 
+### 3.4 PUBACK - 发布确认
+
+PUBACK包用来响应QoS等级为1的PUBLISH包。
+
+#### 3.4.1 固定包头
+
+    Figure 3.12 - PUBACK Packet fixed header
+
+    |Bit 	|7 6 5 4 			|3 2 1 0
+    |byte 1 	|MQTT Control Packet type (4) 	|Reserved
+    | 		|0 1 0 0 			|0 0 0 0
+    |byte 2 	|Remaining Length (2)
+    | 		|0 0 0 0 			|0 0 1 0
+
+**剩余长度字段**
+
+可变包头哦长度，对PUBACK包来说这个值是2。
+
+#### 3.4.2 可变包头
+
+包含需要确认的那个PUBLISH包的包唯一标识。
+
+    Figure3.13 - PUBACK Packet variable header
+
+    |Bit 	|7 6 5 4 3 2 1 0
+    |byte 1 	|Packet Identifier MSB
+    |byte 2 	|Packet Identifier LSB
+
+#### 3.4.3 载荷
+
+PUBACK包没有载荷。
+
+#### 3.4.4 行为
+
+完整的描述见4.3.2节。
+
+### 3.5 PUBREC - 发布收到（收到QoS 2的发布，第1部分）
+
+PUBREC包用来响应QoS 2的PUBLISH包。这是QoS 2协议交换的第二个包。
+
+#### 3.5.1 固定包头
+
+    Figure 3.14 – PUBREC Packet fixed header
+
+    |Bit 	|7 6 5 4 			|3 2 1 0
+    |byte 1 	|MQTT Control Packet type (5) 	|Reserved
+    | 		|0 1 0 1 			|0 0 0 0
+    |byte 2 	|Remaining Length(2)
+    | 		|0 0 0 0 			|0 0 1 0
+
+**剩余长度字段**
+
+可变包头的长度。对PUBREC包来说值为2。
+
+#### 3.5.2 可变包头
+
+包含需要确认的那个PUBLISH包的包唯一标识。
+
+    Figure 3.15 – PUBREC Packet variable header
+    
+    |Bit 	|7 6 5 4 3 2 1 0
+    |byte 1 	|Packet Identifier MSB
+    |byte 2 	|Packet Identifier LSB
+
+#### 3.5.3 载荷
+
+PUBREC包没有载荷。
+
+#### 3.5.4 行为
+
+完整的描述见4.3.3节。
+
+### 3.6 PUBREL - Publish release（收到QoS 2的发布，第2部分）
+
+PUBREL包用来响应PUBREC包。是QoS 2协议交换的第三部分。
+
+#### 3.6.1 固定包头
+
+    Figure 3.16 – PUBREL Packet fixed header
+    
+    |Bit 	|7 6 5 4 			|3 2 1 0
+    |byte 1 	|MQTT Control Packet type (6) 	|Reserved
+    |       	|0 1 1 0 			|0 0 1 0
+    |byte 2 	|Remaining Length (2)
+    |       	|0 0 0 0 			|0 0 1 0
+
+PUBREL控制包的固定包头的位3，2，1，0是保留位，而且必须被分别设置为0，0，1，0。服务端必须将其他值作为畸形，并且关闭网络连接[MQTT-3.6.1-1]。
+
+#### 3.6.2 可变包头
+
+可变包头包含需要确认的PUBREC包相同的包唯一和标识。
+
+    Figure 3.17 – PUBREL Packet variable header
+    
+    |Bit 	|7 6 5 4 3 2 1 0
+    |byte 1 	|Packet Identifier MSB
+    |byte 2 	|Packet Identifier LSB
+
+#### 3.6.3 载荷
+
+PUBREL包没有载荷
+
+#### 3.6.4 行为
+
+完整的描述见4.3.3节。
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
