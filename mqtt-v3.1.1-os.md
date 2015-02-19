@@ -977,9 +977,79 @@ PUBREL包没有载荷
 
 完整的描述见4.3.3节。
 
+### 3.7 PUBCOMP - 发布完成（QoS 2发布接收，第3部分）
 
+PUBCOMP包用来响应PUBREL包。这是QoS 2协议交换的第四个也是最后一个包。
 
+#### 3.7.1 固定包头
 
+    Figure 3.18 – PUBCOMP Packet fixed header
+    
+    |Bit 	|7 6 5 4 			|3 2 1 0
+    |byte 1 	|MQTT Control Packet type (7) 	|Reserved
+    | 		|0 1 1 1 			|0 0 0 0
+    |byte 2 	|Remaining Length (2)
+    | 		|0 0 0 0 			|0 0 1 0
+
+**剩余长度字段**
+
+这是可变包头的禅固定，对于PUBCOMP包来说值为2。
+
+#### 3.7.2 可变包头
+
+可变包头包含需要确认的PUBREL包相同的包唯一和标识。
+
+    Figure 3.19 – PUBCOMP Packet variable header
+
+    |Bit 	|7 6 5 4 3 2 1 0
+    |byte 1 	|Packet Identifier MSB
+    |byte 2 	|Packet Identifier LSB
+
+#### 3.7.3 载荷
+
+PUBCOMP包没有载荷
+
+#### 3.7.4 行为
+
+完整的表述见4.3.3节。
+
+### 3.8 SUBSCRIBE - 订阅话题
+
+SUBSCRIBE包从客户端发送到服务端创建一个或多个订阅。每个订阅注册客户端感兴趣的一个或多个话题。服务端向客户端发送PUBLISH包来分发匹配订阅的应用消息。SUBSCRIBE包也（为每个订阅）指定服务端发送给客户端的应用消息的最大QoS。
+
+#### 3.8.1 固定包头
+
+    Figure 3.20 – SUBSCRIBE Packet fixed header
+    
+    |Bit 	|7 6 5 4 			|3 2 1 0
+    |byte 1 	|MQTT Control Packet type (8) 	|Reserved
+    | 		|1 0 0 0 			|0 0 1 0
+    |byte 2 	|Remaining Length
+
+SUBSCRIBE控制包的固定包头的3，2，1，0位是保留位，而且必须设置为0，0，1，0。服务端必须把其他值作为畸形对待，然后关闭网络连接[MQTT-3.8.1-1]。
+
+**剩余长度字段**
+
+可变包头的长度（2个字节）再加上载荷的长度。
+
+#### 3.8.2 可变包头
+
+可变包头包含包唯一标识。2.3.1节提供了包唯一标识的更多信息。
+
+##### 3.8.2.1 可变包头的非规范用例
+
+Figure 3.21展示了带有包唯一标识10的可变包头。
+
+    Figure 3.21 - Variable header with a Packet Identifier of 10, Non normative example
+     
+    | 		|Description 			|7 6 5 4 3 2 1 0
+    |Packet Identifier
+    |byte 1 	|Packet Identifier MSB (0) 	|0 0 0 0 0 0 0 0
+    |byte 2 	|Packet Identifier LSB (10) 	|0 0 0 0 1 0 1 0
+
+#### 3.8.3 载荷
+
+SUBSCRIBE包的载荷包含了话题过滤器的列表，指示客户端想要订阅的主题。SUBSCRIBE包载荷中的主体过滤器必须是1.5.3节定义的UTF-8编码字符串[MQTT-3.8.3-1]。服务端应该支持4.7.1节中定义的包含通配符的话题过滤器。如果选择不支持带有通配符的话题过滤器，就必须拒绝所有带有通配符过滤器的订阅[MQTT-3.8.3-2]。每个过滤器后面都带有一个字节的QoS。这指定了服务端发送给客户端应用消息的最大QoS等级。
 
 
 
