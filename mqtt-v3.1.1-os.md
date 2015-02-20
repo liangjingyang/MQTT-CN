@@ -1051,7 +1051,20 @@ Figure 3.21展示了带有包唯一标识10的可变包头。
 
 SUBSCRIBE包的载荷包含了话题过滤器的列表，指示客户端想要订阅的主题。SUBSCRIBE包载荷中的主体过滤器必须是1.5.3节定义的UTF-8编码字符串[MQTT-3.8.3-1]。服务端应该支持4.7.1节中定义的包含通配符的话题过滤器。如果选择不支持带有通配符的话题过滤器，就必须拒绝所有带有通配符过滤器的订阅[MQTT-3.8.3-2]。每个过滤器后面都带有一个字节的QoS。这指定了服务端发送给客户端应用消息的最大QoS等级。
 
+SUBSCRIBE包的载荷至少包含一个成对的话题过滤器/QoS。没有载荷的SUBSCRIBE包是违反协议的[MQTT-3.8.3-3]。错误处理见4.8节。
 
+在UTF-8编码的话题名之后是一个字节的最大QoS字段，这些话题过滤器/QoS对一个接一个地连续的被封装。
+
+    Figure 3.22 – SUBSCRIBE Packet payload format
+    
+    |Description 	|7 6 5 4 3 2 	|1 0
+    |Topic Filter
+    |byte 1 		|Length MSB
+    |byte 2 		|Length LSB
+    |bytes 3..N 	|Topic Filter
+    |Requested QoS
+    | 			|Reserved 	|QoS
+    |byte N+1 		|0 0 0 0 0 0 	|X X
 
 
 
