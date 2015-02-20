@@ -1066,9 +1066,50 @@ SUBSCRIBE包的载荷至少包含一个成对的话题过滤器/QoS。没有载�
     | 			|Reserved 	|QoS
     |byte N+1 		|0 0 0 0 0 0 	|X X
 
+QoS字节的高6位在当前版本的协议中没有使用。这是为未来预留的。如果载荷中预留的位非零，或者QoS不是0，1，2，那么服务端必须把SUBSCRIBE包当作畸形关闭网络连接[MQTT-3.8.3-4]。
 
+##### 3.8.3.1 载荷非规范用例
 
+Figure 3.23 - Payload byte format non normative example显示了SUBSCRIBE包的载荷，简短描述见Table 3.5 - Payload non normative example。
 
+    Table 3.5 - Payload non normative example
+    
+    |Topic Name 	|“a/b”
+    |Requested QoS 	|0x01
+    |Topic Name 	|“c/d”
+    |Requested QoS 	|0x02
+
+    Figure 3.23 - Payload byte format non normative example
+    
+    | 		|Description 		|7 6 5 4 3 2 1 0
+    |Topic Filter
+    |byte 1 		|Length MSB (0) 	|0 0 0 0 0 0 0 0
+    |byte 2 		|Length LSB (3) 	|0 0 0 0 0 0 1 1
+    |byte 3 		|‘a’ (0x61) 		|0 1 1 0 0 0 0 1
+    |byte 4 		|‘/’ (0x2F) 		|0 0 1 0 1 1 1 1
+    |byte 5 		|‘b’ (0x62) 		|0 1 1 0 0 0 1 0
+    |Requested QoS
+    |byte 6 		|Requested QoS(1) 	|0 0 0 0 0 0 0 1
+    |Topic Filter
+    |byte 7 		|Length MSB (0) 	|0 0 0 0 0 0 0 0
+    |byte 8 		|Length LSB (3) 	|0 0 0 0 0 0 1 1
+    |byte 9 		|‘c’ (0x63) 		|0 1 1 0 0 0 1 1
+    |byte 10 	|‘/’ (0x2F) 		|0 0 1 0 1 1 1 1
+    |byte 11 	|‘d’ (0x64) 		|0 1 1 0 0 1 0 0
+    |Requested QoS
+    |byte 12 	|Requested QoS(2) 	|0 0 0 0 0 0 1 0
+
+#### 3.8.4 响应
+
+当服务端收到客户端发来的SUBSCRIBE包，服务端必须响应一个SUBACK包[MQTT-3.8.4-1]。SUBACK包必须包含与相应SUBSCRIBE包相同的包唯一标识[MQTT-3.8.4-2]。
+
+服务端在发送SUBACK包之前，就可以开始发送订阅的PUBLISH包。
+
+如果服务端收到一个SUBSCRIBE包，其中包含的话题过滤器与一个已经存在的话题过滤器完全相同，服务端必须用新的订阅替换已经存在的订阅。新的订阅中的话题过滤器与之前订阅中的完全一样，但是最大QoS的值可能不同。所有保存的符合该话题过滤器的消息必须被重发，但是发布流一定不能被打断[MQTT-3.8.4-3]。
+
+如果话题过滤器与已存在订阅的过滤器都不相同，新的订阅会被创建，并且所有的匹配的保留消息都会被发送。
+
+如果服务端收到的SUBSCRIBE包包含多个话题过滤器，必须像顺序的收到多个SUBSCRIBE包一样处理它，然后再把所有的响应合并为一个SUBACK响应[MQTT-3.8.4-4]。
 
 
 
