@@ -1123,6 +1123,73 @@ Figure 3.23 - Payload byte format non normative example显示了SUBSCRIBE包的�
 
 使用QoS为2的话题过滤器进行订阅，相当于说"我希望收到匹配过滤器的消息，不要改变他们发布时的QoS"。这就意味着发布者有责任决定消息被派发的最大QoS，而订阅者可以要求服务端降级QoS到更适合的等级。
 
+### 3.9 SUBACK - 订阅确认
+
+SUBACK包从服务端发送给客户端，用来确认收到并处理了SUBSCRIBE包。
+
+SUBACK包包含了返回码的列表，指定了SUBSCRIBE包中的每个订阅的最大QoS等级。
+
+#### 3.9.1 固定包头
+
+    Figure 3.24 – SUBACK Packet fixed header
+    
+    |Bit 	|7 6 5 4 			|3 2 1 0
+    |byte 1 	|MQTT Control Packet type (9) 	|Reserved
+    | 		|1 0 0 1 			|0 0 0 0
+    |byte 2 	|Remaining Length
+
+**剩余长度字段**
+
+可变包头的长度（2字节）再加上载荷的长度。
+
+#### 3.9.2 可变包头
+
+可变包头包含了需要确认的SUBSCRIBE包的包唯一标识。Figure 3.25 - variable header format 展示了可变包头的格式。
+
+    Figure 3.25 – SUBACK Packet variable header
+    
+    |Bit 	|7 6 5 4 3 2 1 0
+    |byte 1 	|Packet Identifier MSB
+    |byte 2 	|Packet Identifier LSB
+
+#### 3.9.3 载荷
+
+载荷包含了返回码的列表。每个返回码对应SUBSCRIBE包中需要被确认的一个话题过滤器。SUBACK包中的返回码的顺序必须匹配SUBSCRIBE包中的话题过滤器的顺序[MQTT-3.9.3-1]。
+
+Figure 3.26 - Payload format 展示了载荷中编码在一个字节中的返回码字段。
+
+    Figure 3.26 – SUBACK Packet payload format
+    
+    |Bit 	|7 6 5 4 3 2 1 0
+    | 		|Return Code
+    |byte 	|1 X 0 0 0 0 0 X X
+
+允许的返回码：
+
+0x00 - 成功 - 最大QoS为0
+0x01 - 成功 - 最大QoS为1
+0x02 - 成功 - 最大QoS为2
+0x80 - 失败
+
+除了0x00,0x01,0x02,0x80之外的SUBACK返回码是保留的，而且不允许使用[MQTT-3.9.3-2]。
+
+##### 3.9.3.1 载荷的非规范用例
+
+Figure 3.27 - Payload byte format non normative example 展示了SUBACK包的载荷，简化描述见Table 3.6 - Payload non normative example。
+
+    Table 3.6 - Payload non normative example
+    
+    |Success - Maximum QoS 0 	|0
+    |Success - Maximum QoS 2 	|2
+    |Failure 			|128
+
+    Figure 3.27 - Payload byte format non normative example
+    
+    | 		|Description 			|7 6 5 4 3 2 1 0
+    |byte 1 	|Success - Maximum QoS 0 	|0 0 0 0 0 0 0 0
+    |byte 2 	|Success - Maximum QoS 2 	|0 0 0 0 0 0 1 0
+    |byte 3 	|Failure 			|1 0 0 0 0 0 0 0
+
 
 
 
