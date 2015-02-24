@@ -257,7 +257,7 @@ RETAIN3 = PUBLISH保留标识
 
 >**非规范注释**
 
->解码剩余长度字段的算法如下：
+>解码Remaining Length的算法如下：
     
     multiplier = 1
     value = 0
@@ -369,7 +369,7 @@ PUBACK，PUBREC，PUBREL包的唯一标识必须和对应的PUBLISH相同[MQTT-2
     |        |0       |0       |0       |1       |0       |0       |0       |0
     |byte 2… |Remaining Length
 
-**剩余长度字段**
+**Remaining Length**
 
 剩余长度是指可变包头长度（10字节）加上载荷的长度。编码方式的描述见2.2.3节。
 
@@ -677,7 +677,7 @@ CONNACK包是服务端发送的用来相应客户端CONNECT包的一种数据包
     |byte 2 	|Remaining Length (2)
     | 		|0 0 0 0 			|0 0 1 0
 
-**剩余长度字段**
+**Remaining Length**
 
 这个是可变包头的长度。对于CONNACK包来说这个值是2。
 
@@ -799,7 +799,7 @@ RETAIN标识被设置为1，而且载荷包含0个字节的PUBLISH包也会被�
 
 >在发布者会不定期发送状态消息的地方，保留消息非常有用。新的订阅者会受到最近的状态。
 
-**剩余长度字段**
+**Remaining Length**
 
 可变包头的长度加上载荷的长度
 
@@ -846,7 +846,7 @@ Figure 3.11 - Publish Packet variable header non normative example 展示了一�
 
 #### 3.3.3 载荷
 
-载荷包含了发布的应用消息。内容和格式由应用决定。载荷的长度可以由固定包头中的剩余长度字段减去可变包头长度得到，也适用于载荷长度为零的PUBLISH包。
+载荷包含了发布的应用消息。内容和格式由应用决定。载荷的长度可以由固定包头中的Remaining Length减去可变包头长度得到，也适用于载荷长度为零的PUBLISH包。
 
 #### 3.3.4 响应
 
@@ -885,7 +885,7 @@ PUBACK包用来响应QoS等级为1的PUBLISH包。
     |byte 2 	|Remaining Length (2)
     | 		|0 0 0 0 			|0 0 1 0
 
-**剩余长度字段**
+**Remaining Length**
 
 可变包头哦长度，对PUBACK包来说这个值是2。
 
@@ -921,7 +921,7 @@ PUBREC包用来响应QoS 2的PUBLISH包。这是QoS 2协议交换的第二个包
     |byte 2 	|Remaining Length(2)
     | 		|0 0 0 0 			|0 0 1 0
 
-**剩余长度字段**
+**Remaining Length**
 
 可变包头的长度。对PUBREC包来说值为2。
 
@@ -991,7 +991,7 @@ PUBCOMP包用来响应PUBREL包。这是QoS 2协议交换的第四个也是最�
     |byte 2 	|Remaining Length (2)
     | 		|0 0 0 0 			|0 0 1 0
 
-**剩余长度字段**
+**Remaining Length**
 
 这是可变包头的禅固定，对于PUBCOMP包来说值为2。
 
@@ -1028,7 +1028,7 @@ SUBSCRIBE包从客户端发送到服务端创建一个或多个订阅。每个�
 
 SUBSCRIBE控制包的固定包头的3，2，1，0位是保留位，而且必须设置为0，0，1，0。服务端必须把其他值作为畸形对待，然后关闭网络连接[MQTT-3.8.1-1]。
 
-**剩余长度字段**
+**Remaining Length**
 
 可变包头的长度（2个字节）再加上载荷的长度。
 
@@ -1138,7 +1138,7 @@ SUBACK包包含了返回码的列表，指定了SUBSCRIBE包中的每个订阅�
     | 		|1 0 0 1 			|0 0 0 0
     |byte 2 	|Remaining Length
 
-**剩余长度字段**
+**Remaining Length**
 
 可变包头的长度（2字节）再加上载荷的长度。
 
@@ -1190,8 +1190,79 @@ Figure 3.27 - Payload byte format non normative example 展示了SUBACK包的载
     |byte 2 	|Success - Maximum QoS 2 	|0 0 0 0 0 0 1 0
     |byte 3 	|Failure 			|1 0 0 0 0 0 0 0
 
+### 3.10 UNSUBSCRIBE - 退订话题
 
+UNSUBSCRIBE包从客户端发往服务端，用来退订话题。
 
+#### 3.10.1 固定包头
+
+    Figure 3.28 – UNSUBSCRIBE Packet Fixed header
+    
+    |Bit	|7 6 5 4 			|3 2 1 0
+    |byte 1 	|MQTT Control Packet type (10) 	|Reserved
+    | 		|1 0 1 0 			|0 0 1 0
+    |byte 2 	|Remaining Length
+
+UNSUBSCRIBE控制包固定包头的3，2，1，0位是预留的，而且必须分别被设置为0，0，1，0。服务端必须把其他值作为畸形，并且关闭网络连接[MQTT-3.10.1-1]。
+
+**Remaining Length**
+
+可变包头的长度（2字节）再加上载荷的长度。
+
+#### 3.10.2 可变包头
+
+可变包头包含了包唯一标识。2.3.1节提供了包唯一标识的更多信息。
+
+    Figure 3.29 – UNSUBSCRIBE Packet variable header
+    
+    |Bit 	|7 6 5 4 3 2 1 0
+    |byte 1 	|Packet Identifier MSB
+    |byte 2 	|Packet Identifier LSB
+
+#### 3.10.3 载荷
+
+UNSUBSCRIBE包包含了客户端希望退订的话题过滤器列表。UNSUBSCRIBE包中的被连续打包的话题过滤器必须是1.5.3节定义的UTF-8编码字符串[MQTT-3.10.3-1]。
+
+UNSUBSCRIBE包的载荷必须包含至少一个话题过滤器。没有载荷的UNSUBSCRIBE包是违反协议的[MQTT-3.10.3-2]。关于错误处理详见4.8节。
+
+##### 3.10.3.1 载荷非规范用例
+
+Figure 3.30 - Payload byte format non normative example 显示了UNSUBSCRIBE包的载荷，简化描述见Table3.7 - Payload non normative example。
+
+    Table3.7 - Payload non normative example
+    
+    |Topic Filter 	|“a/b”
+    |Topic Filter 	|“c/d”
+
+    Figure 3.30 - Payload byte format non normative example
+    
+    | 		|Description 		|7 6 5 4 3 2 1 0
+    |Topic Filter
+    |byte 1 	|Length MSB (0) 	|0 0 0 0 0 0 0 0
+    |byte 2 	|Length LSB (3) 	|0 0 0 0 0 0 1 1
+    |byte 3 	|‘a’ (0x61) 		|0 1 1 0 0 0 0 1
+    |byte 4 	|‘/’ (0x2F) 		|0 0 1 0 1 1 1 1
+    |byte 5 	|‘b’ (0x62) 		|0 1 1 0 0 0 1 0
+    |Topic Filter
+    |byte 6 	|Length MSB (0) 	|0 0 0 0 0 0 0 0
+    |byte 7 	|Length LSB (3) 	|0 0 0 0 0 0 1 1
+    |byte 8 	|‘c’ (0x63) 		|0 1 1 0 0 0 1 1
+    |byte 9 	|‘/’ (0x2F) 		|0 0 1 0 1 1 1 1
+    |byte 10 	|‘d’ (0x64) 		|0 1 1 0 0 1 0 0
+
+#### 3.10.4 响应
+
+UNSUBSCRIBE包中的话题过滤器（无论是否包含通配符），都必须逐个字符的与客户端在服务器中的现有订阅集合做比较。如果过滤器匹配成功，那么删除相应的订阅，否则就不处理[MQTT-3.10.4-1]。
+
+如果服务端删除了订阅：
+
+- 必须停止追加新的派发给客户端哦消息[MQTT-3.10.4-2]。
+- 必须完成所有已经开始发送给客户端的QoS 1或QoS 2消息的派发。
+- 可以继续发送派发消息队列中已经存在的消息给客户端。
+
+服务端必须发送UNSUBACK包来响应UNSUBSCRIBE。UNSUBACK包必须和UNSUBSCRIBE包有相同的包唯一标识[MQTT-3.10.4-4]。即使没有话题订阅被删除，服务端也必须响应一个UNSUBACK[MQTT-3.10.4-5]。
+
+如果服务端收到一个UNSUBSCRIBE包，包含多个话题过滤器，服务端必须像按顺序收到多个UNSUBSCRIBE包一样来处理，但是只发送一个UNSUBACK包来响应[MQTT-3.10.4-6]。
 
 
 
