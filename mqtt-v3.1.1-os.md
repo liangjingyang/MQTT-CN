@@ -1264,15 +1264,127 @@ UNSUBSCRIBE包中的话题过滤器（无论是否包含通配符），都必须
 
 如果服务端收到一个UNSUBSCRIBE包，包含多个话题过滤器，服务端必须像按顺序收到多个UNSUBSCRIBE包一样来处理，但是只发送一个UNSUBACK包来响应[MQTT-3.10.4-6]。
 
+### 3.11 UNSUBACK - 退订确认
 
+UNSUBACK包从服务端发往客户端来确认收到UNSUBSCRIBE包。
 
+#### 3.11.1 固定包头
 
+    Figure 3.31 – UNSUBACK Packet fixed header
+    
+    |Bit 	|7 6 5 4 			|3 2 1 0
+    |byte 1 	|MQTT Control Packet type (11) 	|Reserved
+    | 		|1 0 1 1 			|0 0 0 0
+    |byte 2 	|Remaining Length (2)
+    | 		|0 0 0 0 			|0 0 1 0
 
+**Remaining Length**
 
+可变包头的长度，对UNSUBACK包来说值为2。
 
+#### 3.11.2 可变包头
 
+可变包头包含了需要确认哦UNSUBSCRIBE包的包唯一标识。
 
+    Figure 3.32 – UNSUBACK Packet variable header
+    
+    |Bit 	|7 6 5 4 3 2 1 0
+    |byte 1 	|Packet Identifier MSB
+    |byte 2 	|Packet Identifier LSB
 
+#### 3.11.3 载荷
+
+UNSUBACK包没有载荷
+
+### 3.12 PINGREQ - PING请求
+
+PINGREQ包从客户端发往服务端，可以用来：
+
+1. 在没有其他控制包从客户端发送给服务端的时候，告知服务端客户端的存活状态。
+2. 请求服务端响应，来确认服务端是否存活。
+3. 确认网络连接的有效性。
+
+这个包在Keep Alive处理中用到，更多的细节见3.1.2.10节。
+
+#### 3.12.1 固定包头
+
+    Figure 3.33 – PINGREQ Packet fixed header
+    
+    |Bit 	|7 6 5 4 			|3 2 1 0
+    |byte 1 	|MQTT Control Packet type (12) 	|Reserved
+    | 		|1 1 0 0 			|0 0 0 0
+    |byte 2 	|Remaining Length (0)
+    | 		|0 0 0 0 			|0 0 0 0
+
+#### 3.12.2 可变包头
+
+PINGREQ包没有可变包头。
+
+#### 3.12.3 载荷
+
+PINGREQ包没有载荷。
+
+#### 3.12.4 响应
+
+服务端必须发送PINGRESP包响应PINGREQ包[MQTT-3.12.4-1]。
+
+### 3.13 PINGRESP - PING响应
+
+PINGRESP包从服务端发送给客户端来响应PINGREQ包。它代表服务端是存活的。
+
+这个包在Keep Alive处理中用到，更多的细节见3.1.2.10节。
+
+#### 3.13.1 固定包头
+
+    |Figure 3.34 – PINGRESP Packet fixed header
+
+    |Bit 	|7 6 5 4 			|3 2 1 0
+    |byte 1 	|MQTT Control Packet type (13) 	|Reserved
+    | 		|1 1 0 0 			|0 0 0 0
+    |byte 2 	|Remaining Length (0)
+    | 		|0 0 0 0 			|0 0 0 0
+
+#### 3.13.2 可变包头
+
+PINGRESP包没有可变包头。
+
+#### 3.13.3 载荷
+
+PINGRESP包没有载荷。
+
+### 3.14 DISCONNECT - 断开连接通知
+
+DISCONNECT包是客户端发给服务端的最后一个控制包。它表示客户端正在干净利索的断开连接。
+
+#### 3.14.1 固定包头
+
+    |Figure 3.35 – DISCONNECT Packet fixed header
+
+    |Bit 	|7 6 5 4 			|3 2 1 0
+    |byte 1 	|MQTT Control Packet type (14) 	|Reserved
+    | 		|1 1 0 0 			|0 0 0 0
+    |byte 2 	|Remaining Length (0)
+    | 		|0 0 0 0 			|0 0 0 0
+
+#### 3.14.2 可变包头
+
+DISCONNECT包没有可变包头。
+
+#### 3.14.3 载荷
+
+DISCONNECT包没有载荷。
+
+#### 3.14.4 响应
+
+客服端发送DISCONNECT包之后：
+
+- 必须关闭网络连接[MQTT-3.14.4-1]。
+- 不允许在这个网络连接上再发送任何控制包[MQTT-3.14.4-2]。
+
+服务端收到DISCONNECT包：
+
+- 必须丢弃所有和当前连接有关的Will Message，不要发布，就像3.1.2.5节描述的[MQTT-3.14.4-3]。 
+- 应该关闭网络连接，如果客户端还没有这么做。
 
 
 
