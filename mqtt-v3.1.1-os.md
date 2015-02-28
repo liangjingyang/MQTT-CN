@@ -1433,6 +1433,154 @@ TCP端口8883和1883是IANA为MQTT TLS和非TLS通信注册的。
 
 无连接的网络传输例如用户数据包协议（UDP）不适用，因为它们可能丢失或重排数据。
 
+### 4.3 质量服务等级和协议流
+
+MQTT根据质量服务（QoS）等级分发应用消息。分发协议是对称的，客户端和服务端都既可以是发送者也可以是接收者。分发协议唯一关心的是应用消息的分发是从一个单一的发送者到一个单一的接收者。当服务端分发一个应用消息给多个客户端，每个客户端都被当作是独立的。向外分发应用消息给客户端的QoS等级可能与收到应用消息的QoS等级有所不同。
+
+下面小节的非规范的流程图展示了可能的实现方式。
+
+#### 4.3.1 QoS 0: 最多分发一次
+
+消息分发以来底层网络的性能。接收者不发送响应，发送者也不重新尝试。接收者只能收到一次消息，或者一次也收不到。
+
+在QoS 0的分发协议中，发送者
+
+- 必须发送带有QoS=0，DUP=0的PUBLISH包[MQTT-4.3.1-1].
+
+在QoS 0的分发协议中，接收者
+
+- 接收者在收到PUBLISH包的时候就相当于接受了所有权。
+
+    Figure 4.1 – QoS 0 protocol flow diagram, non normative example
+    
+    |Sender Action 		|Control Packet 		|Receiver Action
+    |PUBLISH QoS 0, DUP=0 	| 				|
+    | 				|----------> 			|
+    | 				|				|Deliver Application Message to appropriate onward recipient(s)
+
+#### 4.3.2 QoS 1:最少分发一次
+
+这种情况的质量服务确保消息至少一次抵达接收者。QoS 1的PUBLISH包的可变包头包含包唯一标识，而且有PUBACK包确认。2.3.1节提供了更多包唯一标识的信息。
+
+在QoS 1的分发协议中，发送者
+
+- 每次发布新的应用消息，必须分配一个没有用过的包唯一标识。
+- 包含唯一标识的PUBLISH包也必须是QoS=1，DUP=0。
+- 必须把PUBLISH包当作“未确认的”，直到从接收者那里收到对应的PUBACK包。未确认消息的讨论见4.4节。
+
+[MQTT-4.3.2-1]。
+
+一旦发送者收到PUBACK包，包唯一标识就可以重用了。
+
+注意，发送者在鞥带接收确认的时候，可以发送不同包唯一标识的PUBLISH包。
+
+在QoS 1的分发协议中，接收者
+
+- 必须响应一个包含与PUBLISH包相同的包唯一标识，来接受应用消息的所属关系。
+- 在发送PUBACK包之后，接收者必须把所有收到的包含相同包唯一标识的PUBLISH包当作一个新的发布，无论是否设置了DUP标识。
+
+[MQTT-4.3.2-2]。
+
+    Figure 4.2 – QoS 1 protocol flow diagram, non normative example
+    
+    |Sender Action 					|Control Packet 	|Receiver action
+    |Store message 					| 			|
+    |Send PUBLISH QoS 1, DUP 0, <Packet Identifier> 	|----------> 		|
+    | 							| 			|Initiate onward delivery of the Application Message1
+    | 							|<---------- 		|Send PUBACK <Packet Identifier>
+    |Discard message 					| 			|
+
+><sup>1<sup>接收者不需要在发送PUBACK之前完整的分发应用消息。当原始的发送者收到PUBACK包，应用消息的所属关系就转给了接收者。
+
+#### 4.3.3 QoS 2 精确一次分发
+
+这是最高的服务质量，用在丢失和重复消息都不能被接受的情况。这种服务质量会增加开销。
+
+QoS 2消息的可变包头包含包唯一标识。2.3.1节提供了更多关于包唯一标识的信息。QoS 2的PUBLISH包的接收者分两步确认接收。
+
+在QoS 2的分发协议中，发送者
+
+- 每次发布新的应用消息，必须分配一个没有用过的包唯一标识。
+- 包含唯一标识的PUBLISH包也必须是QoS=1，DUP=0。
+- 必须把PUBLISH包当作“未确认的”，直到从接收者那里收到对应的PUBACK包。未确认消息的讨论见4.4节。
+- 当从接收者那里收到PUBREC包时要发送PUBREL包。PUBREL包必须包含与原始PUBLISH包相同的包唯一标识。
+- 必须把PUBREL包当作“未确认的”，直到从接收者那里收到对应的PUBCOMP包。
+- 一旦已经发送了相应的PUBREL包，就不能再重发PUBLISH包。
+
+[MQTT-4.3.3-1]。
+
+当发送者收到PUBCOMP包之后，包唯一标识就可以重用了。
+
+注意，发送者在鞥带接收确认的时候，可以发送不同包唯一标识的PUBLISH包。
+
+在QoS 2的分发协议中，接收者
+
+- 必须响应一个包含与PUBLISH包相同的包唯一标识，来接受应用消息的所属关系。
+- 直到收到相应的PUBREL包，接收者必须发送包含相同包唯一标识的PUBREC来确认后来的PUBLISH包。这样一定不会导致重复的消息被分发到接下来的接收者。
+- 必须用包含相同包唯一标识的PUBCOMP包来响应一个PUBREL包。
+- 在发送PUBCOMP之后，接收者必须把所有收到的包含相同包唯一标识的PUBLISH包当作一个新的发布。
+
+[MQTT-4.3.3-2]。
+
+    Figure 4.3 – QoS 2 protocol flow diagram, non normative example
+    
+    |Sender Action 						|Control Packet 	|Receiver Action
+    |Store message 					        | 			| 
+    |PUBLISH QoS 2, DUP 0 <Packet Identifier> 			|			| 
+    | 								|----------> 		|
+    | 								|			|Method A, Store message or Method B, Store <Packet Identifier> then Initiate onward delivery of the Application Message1
+    | 								|			|PUBREC <Packet Identifier>
+    | 								|<---------- 		|
+    |Discard message, Store PUBREC received <Packet Identifier> |			|
+    |PUBREL <Packet Identifier> 				| 			|
+    | 								|----------> 		|
+    | 								|			|Method A, Initiate onward delivery of the Application Message1  then discard message or Method B, Discard <Packet Identifier>
+    | 								|			|Send PUBCOMP <Packet Identifier> 
+    | 								|<----------  		|
+    |Discard stored state 					| 			|
+
+><sup>1<sup>接收者不需要在发送PUBACK之前完整的分发应用消息。当原始的发送者收到PUBACK包，应用消息的所属关系就转给了接收者。
+
+>Figure 4.3展示了接收者能处理QoS 2的两种方法。流程中不同哦一点是在哪一步开始继续向下分发。选择方法A或方法B由实现决定。只要实现选择一种方法去处理，就不会影响QoS 2流程哦可靠性。
+
+### 4.4 消息分发重试
+
+当客户端将CleanSession设置为0进行重连，客户端和服务端都不许重发未确认的PUBLISH包（当QoS > 0时），PUBREL包使用原始包唯一标识[MQTT-4.4.0-1]。这是客户端和服务端被要求重发消息的唯一情况。
+
+**非规范注释**
+
+控制包的重传在历史上是为了克服在古老哦TCP网络上丢失数据。现在这也是一个问题，MQTT3.1.1的实现有可能部署在这样的环境中。
+
+### 4.5 
+
+当服务端获得了发来的应用消息哦所有权，必须追加到那些符合订阅的客户端的Session状态中。匹配规则定义在4.7节[MQTT-4.5.0-1]。
+
+在正常的环境下，客户端接收已创建订阅的消息。客户端也会收到一些没有订阅的消息。如果服务端自动指派了一个订阅给客户端就会出现何种情况。当UNSUBSCRIBE操作在处理中的时候，客户端也可能收到这个订阅的消息。客户端必须根据QoS规则确认所有收到的PUBLISH包，不论是否处理应用消息的内容[MQTT-4.5.0-2]。
+
+### 4.6
+
+在实现本章定义的协议流程的时候，客户端必须遵循如下规则：
+
+- 当重发PUBLISH包的时候，必须按照原始PUBLISH包的发送顺序重发它们（作用于QoS 1和QoS 2的消息）[MQTT-4.6.0-1]
+- 必须按照收到PUBLISH包的顺序发送相应的PUBACK包
+- 必须按照收到PUBLISH包的顺序发送相应的PUBREC包
+- 必须按照收到PUBREC包的顺序发送相应的PUBREL包
+
+服务端必须默认把每个话题都当作“有序话题”。可以提供管理上或其他机制允许的一个或多个话题作为“无序话题”[MQTT-4.6.0-5]。
+
+当服务端处理一个被发布给有序话题的消息时，在分发消息给订阅者时，必须遵循上述规则。而且必须按照收到PUBLISH包的顺序把它们发送给消费者（相同的话题和QoS）[MQTT-4.6.0-6]。
+
+**非规范注释**
+
+上述规则保证了，当一个QoS 1订阅的消息流被发布，订阅者收到的每个消息的最终拷贝都会按照原始发布的顺序，但是消息重复的可能性会导致较早的消息在重发后，会比后续的消息更晚收到。例如发布者可能按照1，2，3，4的顺序发送消息，订阅者可能按照1，2，3，2，3，4的顺序收到消息。
+
+如果客户端和服务端都确定同一时间只有一条消息“正在飞”（除非收到上一个消息哦确认，否则不发送消息），那么QoS 1的消息会在其他消息之后被收到 - 例如，订阅者可能收到的顺序是1，2，3，3，4而非1，2，3，2，3，4。将“正在飞”的窗口设置为1也意味着顺序会被保存，即使发布者在一个话题上发送QoS等级不同的一个序列的消息。
+
+
+ 
+ 
+
+
 
 
 
