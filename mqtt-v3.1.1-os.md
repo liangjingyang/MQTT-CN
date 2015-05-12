@@ -3,9 +3,9 @@
 
 原文地址：http://docs.oasis-open.org/mqtt/mqtt/v3.1.1/os/mqtt-v3.1.1-os.html
 
-##1.介绍
+## 1 介绍
 
-###1.1 MQTT的组织结构
+### 1.1 MQTT的组织结构
 
 本规范分为七个主要章节：
 
@@ -17,7 +17,7 @@
 - 第六章 \- 用WebSocket传输
 - 第七章 \- 一致性目标
 
-###1.2 术语
+### 1.2 术语
 
 规范中的关键字“MUST”，“MUST NOT”，“REQUIRED”，“SHALL”，“SHALL NOT”，“SHOULD”，“SHOULD NOT”，“RECOMMENDED”，“MAY”，“OPTIONAL” 的解释见IETF RFC 2119 \[RFC2119\]。
 
@@ -2024,4 +2024,4 @@ MQTT客户端只有在下列陈述都满足的情况下才算符合本规范：
 
 ----
 
-# 附录（略）
+## 附录（略）
