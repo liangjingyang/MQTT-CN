@@ -266,8 +266,8 @@ MQTT通过交换一些预定义的MQTT控制包来工作。这一节描述这些
     Figure 2.2 - Fixed header format
 
     |Bit         |7       |6       |5       |4       |3       |2       |1           |0
-    |byte 1      |控制包类型                         |每个控制包类型的特定标识
-    |byte 2      |剩下的长度
+    |byte 1      |MQTT Control Packet type           |Flags specific to each MQTT Control Packet type
+    |byte 2      |Remaining Length
 
 #### 2.2.1 MQTT控制包类型
 
@@ -276,31 +276,31 @@ MQTT通过交换一些预定义的MQTT控制包来工作。这一节描述这些
 
     Table 2.1 - Control packet types
 
-    |助记符         |枚举           |流向                   |描述
-    |Reserved       |0              |禁用                   |保留
-    |CONNECT        |1              |客户端到服务端         |客户端请求连接服务端
-    |CONNACK        |2              |服务端到客户端         |连接确认
-    |PUBLISH        |3              |双向                   |发布消息
-    |PUBACK         |4              |双向                   |发布确认
-    |PUBREC         |5              |双向                   |接受到了发布
-    |PUBREL         |6              |双向                   |释放了发布
-    |PUBCOMP        |7              |双向                   |发布完成
-    |SUBSCRIBE      |8              |客户端到服务端         |客户端订阅请求
-    |SUBACK         |9              |服务端到客户端         |订阅确认
-    |UNSUBSCRIBE    |10             |客户端到服务端         |客户端请求取消订阅
-    |UNSUBACK       |11             |服务端到客户端         |取消订阅确认
-    |PINGREQ        |12             |客户端到服务端         |PING请求
-    |PINGRESP       |13             |服务端到客户端         |PING响应
-    |DISCONNECT     |14             |客户端到服务端         |客户端断开连接
-    |Reserved       |15             |禁用                   |保留
-
+    |Name           |Value          |Direction of flow                   |Description
+    |Reserved       |0              |Forbidden                   |Reserved
+    |CONNECT        |1              |Client to Server                       |
+    |CONNACK        |2              |Server to Client                       |Connect acknowledgment
+    |PUBLISH        |3              |Client to Server or Server to Client   |Publish message
+    |PUBACK         |4              |Client to Server or Server to Client   |Publish acknowledgment
+    |PUBREC         |5              |Client to Server or Server to Client   |Publish received (assured delivery part 1)
+    |PUBREL         |6              |Client to Server or Server to Client   |Publish release (assured delivery part 2)
+    |PUBCOMP        |7              |Client to Server or Server to Client   |Publish complete (assured delivery part 3)
+    |SUBSCRIBE      |8              |Client to Server                       |Client subscribe request
+    |SUBACK         |9              |Server to Client                       |Subscribe acknowledgment
+    |UNSUBSCRIBE    |10             |Client to Server                       |Unsubscribe request
+    |UNSUBACK       |11             |Server to Client                       |Unsubscribe acknowledgment
+    |PINGREQ        |12             |Client to Server                       |PING request
+    |PINGRESP       |13             |Server to Client                       |PING response
+    |DISCONNECT     |14             |Client to Server                       |Client is disconnecting
+    |Reserved       |15             |Forbidden                              |Reserved
+Client to Server or Server to Client
 #### 2.2.2 标识
 
 固定包头字节1中剩下的位[3-0]包含了每个MQTT控制包类型的特殊标识，如下表Table 2,2 - Flag Bits。表中被标识为“预留”的标识位也必须赋值[MQTT-2.2.2-1]。如果收到不可用的标识，接收方必须关闭网络连接。
 
     Table 2.2 -Flag Bits
 
-    |控制包             |固定头标识             |bit3           |bit2           |bit1           |bit0
+    |Control Package    |Fixed header flags     |bit3           |bit2           |bit1           |bit0
     |CONNECT            |Reserved               |0              |0              |0              |0
     |CONNACK            |Reserved               |0              |0              |0              |0
     |PUBLISH            |Used in MQTT 3.1.1     |DUP1           |QoS2           |QoS2           |RETAIN3
@@ -525,7 +525,7 @@ CONNECT包的可变包头由四个字段按照如下顺序构成：协议名字�
     Figure 3.4 - Connect Flag bits
     
     |Bit        |7                |6              |5              |4  |3       |2          |1              |0
-    |           |User Name Flag   |Password Flag  |Will Retain    |Will QoS   |Will Flag  |Clean Session  |Reserved
+    |           |User Name Flag   |Password Flag  |Will Retain    |Will QoS    |Will Flag  |Clean Session  |Reserved
     |byte 8     |X                |X              |X              |X  |X       |X          |X              |0
 
 服务端必须验证CONNECT控制包的预留字段是否为0，如果不为0断开与客户端的连接[MQTT-3.1.2-3].
@@ -670,18 +670,18 @@ Keep Alive的值为0，就关闭了维持的机制。这意味着，在这种情
 
     Figure 3.6 - Variable header non normative example
 
-    |           |Description            |7 6 5 4 3 2 1 0
+    |           |Description            |7 |6 |5 |4 |3 |2 |1 |0
     |Protocol Name
-    |byte 1     |Length MSB (0)         |0 0 0 0 0 0 0 0
-    |byte 2     |Length LSB (4)         |0 0 0 0 0 1 0 0
-    |byte 3     |‘M’                    |0 1 0 0 1 1 0 1
-    |byte 4     |‘Q’                    |0 1 0 1 0 0 0 1
-    |byte 5     |‘T’                    |0 1 0 1 0 1 0 0
-    |byte 6     |‘T’                    |0 1 0 1 0 1 0 0
+    |byte 1     |Length MSB (0)         |0 |0 |0 |0 |0 |0 |0 |0
+    |byte 2     |Length LSB (4)         |0 |0 |0 |0 |0 |1 |0 |0
+    |byte 3     |‘M’                    |0 |1 |0 |0 |1 |1 |0 |1
+    |byte 4     |‘Q’                    |0 |1 |0 |1 |0 |0 |0 |1
+    |byte 5     |‘T’                    |0 |1 |0 |1 |0 |1 |0 |0
+    |byte 6     |‘T’                    |0 |1 |0 |1 |0 |1 |0 |0
     |Protocol Level
-    |byte 7     |Level (4)              |0 0 0 0 0 1 0 0
+    |byte 7     |Level (4)              |0 |0 |0 |0 |0 |1 |0 |0
     |Connect Flags 
-    |byte 8     |User Name Flag (1)     |1 1 0 0 1 1 1 0
+    |byte 8     |User Name Flag (1)     |1 |1 |0 |0 |1 |1 |1 |0
     |           |Password Flag (1)
     |           |Will Retain (0)
     |           |Will QoS (01)
@@ -689,8 +689,8 @@ Keep Alive的值为0，就关闭了维持的机制。这意味着，在这种情
     |           |Clean Session (1)
     |           |Reserved (0)
     |Keep Alive
-    |byte 9     |Keep Alive MSB (0)     |0 0 0 0 0 0 0 0
-    |byte 10    |Keep Alive LSB (10)    |0 0 0 0 1 0 1 0
+    |byte 9     |Keep Alive MSB (0)     |0 |0 |0 |0 |0 |0 |0 |0
+    |byte 10    |Keep Alive LSB (10)    |0 |0 |0 |0 |1 |0 |1 |0
 
 #### 3.1.3 载荷
 
@@ -1598,7 +1598,7 @@ MQTT根据质量服务（QoS）等级分发应用消息。分发协议是对称�
     |Store message                                      |                   |
     |Send PUBLISH QoS 1, DUP 0, <Packet Identifier>     |---------->        |
     |                                                   |                   |Initiate onward delivery of the Application Message1
-    |                                                   |<----------           |Send PUBACK <Packet Identifier>
+    |                                                   |<----------        |Send PUBACK <Packet Identifier>
     |Discard message                                    |                   |
 
 ><sup>1<sup>接收者不需要在发送PUBACK之前完整的分发应用消息。当原始的发送者收到PUBACK包，应用消息的所属关系就转给了接收者。
@@ -1644,10 +1644,10 @@ QoS 2消息的可变包头包含包唯一标识。2.3.1节提供了更多关于�
     |                                                           |<----------    |
     |Discard message, Store PUBREC received <Packet Identifier> |               |
     |PUBREL <Packet Identifier>                                 |               |
-    |                                                           |---------->        |
+    |                                                           |---------->    |
     |                                                           |               |Method A, Initiate onward delivery of the Application Message1  then discard message or Method B, Discard <Packet Identifier>
     |                                                           |               |Send PUBCOMP <Packet Identifier> 
-    |                                                           |<----------        |
+    |                                                           |<----------    |
     |Discard stored state                                       |               |
 
 ><sup>1<sup>接收者不需要在发送PUBACK之前完整的分发应用消息。当原始的发送者收到PUBACK包，应用消息的所属关系就转给了接收者。
