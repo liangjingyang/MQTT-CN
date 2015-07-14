@@ -199,10 +199,11 @@ http://export.gov/safeharbor/eu/eg_main_018365.asp
 除非特别说明，所有的UTF-8编码字符串的长度都可以是0到65535个字节。
 
     Figure 1.1 Structure of UTF-8 encoded strings
-    bit     7       6       5       4       3       2       1       0
-    byte 1  string length MSB
-    byte 2  string length LSB
-    byte 3  UTF-8 Encoded CharacterData, if length > 0.
+
+    |bit     |7       |6       |5       |4       |3       |2       |1       |0
+    |byte 1  |string length MSB
+    |byte 2  |string length LSB
+    |byte 3  |UTF-8 Encoded CharacterData, if length > 0.
 
 **UTF-8编码的字符串中的字符数据必须是Unicode规范里定义的并在RFC 3629里重申的符合规范的UTF-8。尤其是这些数据不能包含介于U+D800到U+DFFF之间的编码。如果客户端或服务端收到了控制包包含不合规的UTF编码，就必须关闭网络连接。[MQTT-1.5.3-1]**
 
@@ -264,7 +265,7 @@ MQTT通过交换一些预定义的MQTT控制包来工作。这一节描述这些
 
     Figure 2.2 - Fixed header format
 
-    |Bit         |7       |6       |5       |4       |3       f2       |1       |0
+    |Bit         |7       |6       |5       |4       |3       |2       |1           |0
     |byte 1      |控制包类型                         |每个控制包类型的特定标识
     |byte 2      |剩下的长度
 
@@ -523,9 +524,9 @@ CONNECT包的可变包头由四个字段按照如下顺序构成：协议名字�
 
     Figure 3.4 - Connect Flag bits
     
-    |Bit 	|7 			|6 		|5 		|4 |3 		|2 		|1 		|0
-    | 		|User Name Flag 	|Password Flag 	|Will Retain 	|Will QoS 	|Will Flag 	|Clean Session 	|Reserved
-    |byte 8 	|X 			|X 		|X 		|X |X 		|X 		|X 		|0
+    |Bit        |7                |6              |5              |4  |3       |2          |1              |0
+    |           |User Name Flag   |Password Flag  |Will Retain    |Will QoS   |Will Flag  |Clean Session  |Reserved
+    |byte 8     |X                |X              |X              |X  |X       |X          |X              |0
 
 服务端必须验证CONNECT控制包的预留字段是否为0，如果不为0断开与客户端的连接[MQTT-3.1.2-3].
 
@@ -644,9 +645,9 @@ Will Message必须从服务端存储的会话状态中移除，一旦被发不�
 
     Figure 3.5 Keep Alive bytes
 
-    |Bit 	|7 |6 |5 |4 |3 |2 |1 |0
-    |byte 9 	|Keep Alive MSB
-    |byte 10 	|Keep Alive LSB
+    |Bit        |7 |6 |5 |4 |3 |2 |1 |0
+    |byte 9     |Keep Alive MSB
+    |byte 10    |Keep Alive LSB
 
 Keep Alive是以秒为单位的时间间隔。用16-bit字表示，它指的是客户端从发送完成一个控制包到开始发送下一个的最大时间间隔。客户端有责任确保两个控制包发送的间隔不能超过Keep Alive的值。如果没有其他控制包可发，客户端必须发送PINGREQ包[MQTT-3.1.2-23]。
 
@@ -669,27 +670,27 @@ Keep Alive的值为0，就关闭了维持的机制。这意味着，在这种情
 
     Figure 3.6 - Variable header non normative example
 
-    | 	 	|Description 		|7 6 5 4 3 2 1 0
+    |           |Description            |7 6 5 4 3 2 1 0
     |Protocol Name
-    |byte 1 	|Length MSB (0) 	|0 0 0 0 0 0 0 0
-    |byte 2 	|Length LSB (4) 	|0 0 0 0 0 1 0 0
-    |byte 3 	|‘M’ 			|0 1 0 0 1 1 0 1
-    |byte 4 	|‘Q’ 			|0 1 0 1 0 0 0 1
-    |byte 5 	|‘T’ 			|0 1 0 1 0 1 0 0
-    |byte 6 	|‘T’ 			|0 1 0 1 0 1 0 0
+    |byte 1     |Length MSB (0)         |0 0 0 0 0 0 0 0
+    |byte 2     |Length LSB (4)         |0 0 0 0 0 1 0 0
+    |byte 3     |‘M’                    |0 1 0 0 1 1 0 1
+    |byte 4     |‘Q’                    |0 1 0 1 0 0 0 1
+    |byte 5     |‘T’                    |0 1 0 1 0 1 0 0
+    |byte 6     |‘T’                    |0 1 0 1 0 1 0 0
     |Protocol Level
-    |byte 7 	|Level (4) 		|0 0 0 0 0 1 0 0
+    |byte 7     |Level (4)              |0 0 0 0 0 1 0 0
     |Connect Flags 
-    |byte 8 	|User Name Flag (1) 	|1 1 0 0 1 1 1 0
-    | 		|Password Flag (1)
-    | 		|Will Retain (0)
-    | 		|Will QoS (01)
-    | 		|Will Flag (1)
-    | 		|Clean Session (1)
-    | 		|Reserved (0)
+    |byte 8     |User Name Flag (1)     |1 1 0 0 1 1 1 0
+    |           |Password Flag (1)
+    |           |Will Retain (0)
+    |           |Will QoS (01)
+    |           |Will Flag (1)
+    |           |Clean Session (1)
+    |           |Reserved (0)
     |Keep Alive
-    |byte 9  	|Keep Alive MSB (0) 	|0 0 0 0 0 0 0 0
-    |byte 10 	|Keep Alive LSB (10) 	|0 0 0 0 1 0 1 0
+    |byte 9     |Keep Alive MSB (0)     |0 0 0 0 0 0 0 0
+    |byte 10    |Keep Alive LSB (10)    |0 0 0 0 1 0 1 0
 
 #### 3.1.3 载荷
 
@@ -740,10 +741,10 @@ ClientId必须是1.5.3节定义的UTF-8编码的字符串[MQTT-3.1.3-4]。
 
     Figure 3.7 - Password bytes
 
-    |Bit 		|7 	|6 	|5 	|4 	|3 	|2 	|1 	|0
-    |byte 1 		|Data length MSB
-    |byte 2 		|Data length LSB
-    |byte 3 ….  	|Data, if length > 0.
+    |Bit            |7  |6  |5  |4  |3  |2  |1  |0
+    |byte 1         |Data length MSB
+    |byte 2         |Data length LSB
+    |byte 3 ….      |Data, if length > 0.
 
 #### 3.1.4 响应
 
@@ -779,11 +780,11 @@ CONNACK包是服务端发送的用来相应客户端CONNECT包的一种数据包
 
     Figure 3.8 - CONNACK Packet fixed header
 
-    |Bit 	|7 6 5 4 			|3 2 1 0
-    |byte 1 	|MQTT Control Packet Type (2) 	|Reserved
-    | 		|0 0 1 0 			|0 0 0 0
-    |byte 2 	|Remaining Length (2)
-    | 		|0 0 0 0 			|0 0 1 0
+    |Bit        |7      |6      |5      |4      |3      |2      |1      |0
+    |byte 1     |MQTT Control Packet Type (2)   |Reserved
+    |           |0      |0      |1      |0      |0      |0      |0      |0
+    |byte 2     |Remaining Length (2)
+    |           |0      |0      |0      |0      |0      |0      |1      |0
 
 **Remaining Length**
 
@@ -795,11 +796,11 @@ CONNACK包是服务端发送的用来相应客户端CONNECT包的一种数据包
 
     Figure 3.9 - CONNACK Packet variable header
 
-    | 		|Description 	|7 |6 |5 |4 |3 |2 |1 	|0
-    |Connect Acknowledge Flags 	|Reserved 		|SP1
-    |byte 1 			|0 |0 |0 |0 |0 |0 |0 	|X
+    |        |Description        |7 |6 |5 |4 |3 |2 |1 |0
+    |Connect Acknowledge Flags   |Reserved            |SP1
+    |byte 1  |                   |0 |0 |0 |0 |0 |0 |0 |X
     |Connect Return code
-    |byte 2 			|X |X |X |X |X |X |X 	|X
+    |byte 2  |                   |X |X |X |X |X |X |X |X
 
 ##### 3.2.2.1 连接确认标识
 
@@ -827,14 +828,14 @@ Session Present标识使得客户端能够建立连接，不论客户端和服�
 
     Table 3.1 - COnnect Return code values
 
-    |Value 	|Return Code Response 					|Description
-    |0 		|0x00 Connection Accepted 				|Connection accepted
-    |1 		|0x01 Connection Refused, unacceptable protocol version |The Server does not support the level of the MQTT protocol requested by the Client
-    |2 		|0x02 Connection Refused, identifier rejected 		|The Client identifier is correct UTF-8 but not allowed by the Server
-    |3 		|0x03 Connection Refused, Server unavailable 		|The Network Connection has been made but the MQTT service is unavailable
-    |4 		|0x04 Connection Refused, bad user name or password 	|The data in the user name or password is malformed
-    |5 		|0x05 Connection Refused, not authorized 		|The Client is not authorized to connect
-    |6-255 	|							|Reserved for future use
+    |Value  |Return Code Response                                   |Description
+    |0      |0x00 Connection Accepted                               |Connection accepted
+    |1      |0x01 Connection Refused, unacceptable protocol version |The Server does not support the level of the MQTT protocol requested by the Client
+    |2      |0x02 Connection Refused, identifier rejected           |The Client identifier is correct UTF-8 but not allowed by the Server
+    |3      |0x03 Connection Refused, Server unavailable            |The Network Connection has been made but the MQTT service is unavailable
+    |4      |0x04 Connection Refused, bad user name or password     |The data in the user name or password is malformed
+    |5      |0x05 Connection Refused, not authorized                |The Client is not authorized to connect
+    |6-255  |                                                       |Reserved for future use
 
 如果上表中的返回码都不适用，那么服务端必须直接关闭网络连接，不发送CONNACK包[MQTT-3.2.2-6]。
 
@@ -852,10 +853,10 @@ Figure 3.10 - PUBLISH Packet fixed header 展现了固定包头的格式：
 
     Figure 3.10 - PUBLISH Packet fixed header
 
-    |Bit 	|7 	|6 	|5 	|4 	|3 		|2 	|1 	|0
-    |byte 1 	|MQTT Control Packet type (3) 	|DUP flag 	|QoS level 	|RETAIN
-    | 		|0 	|0 	|1 	|1	|X 		|X 	|X 	|X
-    |byte 2 	|Remaining Length
+    |Bit        |7  |6  |5  |4                  |3          |2  |1      |0
+    |byte 1     |MQTT Control Packet type (3)   |DUP flag   |QoS level  |RETAIN
+    |           |0  |0  |1  |1                  |X          |X  |X      |X
+    |byte 2     |Remaining Length
 
 ##### 3.3.1.1 DUP
 
@@ -883,11 +884,11 @@ DUP标识必须被设置为1，当客户端或是服务端试图重新发送PUBL
 
     Table 3.2 - QoS definitions
 
-    |QoS value 	|Bit 2 	|bit 1 	|Description
-    |0 		|0 	|0 	|At most once delivery
-    |1 		|0 	|1 	|At least once delivery
-    |2 		|1 	|0 	|Exactly once delivery
-    |- 		|-1 	|1 	|Reserved – must not be used
+    |QoS value  |Bit 2  |bit 1  |Description
+    |0          |0      |0      |At most once delivery
+    |1          |0      |1      |At least once delivery
+    |2          |1      |0      |Exactly once delivery
+    |-          |-1     |1      |Reserved – must not be used
 
 PUBLISH包QoS必须不能设置为1。如果服务端或客户端收到PUBLISH包，PUBLISH包的另个bit都设置为1，必须关闭网络连接。
 
@@ -935,22 +936,22 @@ Figure 3.11 - Publish Packet variable header non normative example 展示了一�
 
     Table 3.3 - Publish Packet non normative example
 
-    |Field 			|Value
-    |Topic Name 		|a/b
-    |Packet Identifier 		|10
+    |Field                  |Value
+    |Topic Name             |a/b
+    |Packet Identifier      |10
     
     Figure 3.11 - Publish Packet variable header non normative example
 
-    | 		|Description 			|7 |6 |5 |4 |3 |2 |1 |0
+    |           |Description                    |7 |6 |5 |4 |3 |2 |1 |0
     |Topic Name
-    |byte 1 	|Length MSB (0) 		|0 |0 |0 |0 |0 |0 |0 |0
-    |byte 2 	|Length LSB (3) 		|0 |0 |0 |0 |0 |0 |1 |1
-    |byte 3 	|‘a’ (0x61) 			|0 |1 |1 |0 |0 |0 |0 |1
-    |byte 4 	|‘/’ (0x2F) 			|0 |0 |1 |0 |1 |1 |1 |1
-    |byte 5 	|‘b’ (0x62) 			|0 |1 |1 |0 |0 |0 |1 |0
+    |byte 1     |Length MSB (0)                 |0 |0 |0 |0 |0 |0 |0 |0
+    |byte 2     |Length LSB (3)                 |0 |0 |0 |0 |0 |0 |1 |1
+    |byte 3     |‘a’ (0x61)                     |0 |1 |1 |0 |0 |0 |0 |1
+    |byte 4     |‘/’ (0x2F)                     |0 |0 |1 |0 |1 |1 |1 |1
+    |byte 5     |‘b’ (0x62)                     |0 |1 |1 |0 |0 |0 |1 |0
     |Packet Identifier
-    |byte 6 	|Packet Identifier MSB (0)  	|0 |0 |0 |0 |0 |0 |0 |0
-    |byte 7 	|Packet Identifier LSB (10) 	|0 |0 |0 |0 |1 |0 |1 |0
+    |byte 6     |Packet Identifier MSB (0)      |0 |0 |0 |0 |0 |0 |0 |0
+    |byte 7     |Packet Identifier LSB (10)     |0 |0 |0 |0 |1 |0 |1 |0
 
 #### 3.3.3 载荷
 
@@ -962,10 +963,10 @@ PUBLISH包的接收方必须根据Table 3.4 - Expected Publish Packet response�
 
     Table 3.4 - Expected Publish Packet response
 
-    |QoS Level 		|Expected Response
-    |QoS 0 		|None
-    |QoS 1 		|PUBACK Packet
-    |QoS 2 		|PUBREC Packet
+    |QoS Level      |Expected Response
+    |QoS 0          |None
+    |QoS 1          |PUBACK Packet
+    |QoS 2          |PUBREC Packet
 
 #### 3.3.5 行为
 
@@ -987,11 +988,11 @@ PUBACK包用来响应QoS等级为1的PUBLISH包。
 
     Figure 3.12 - PUBACK Packet fixed header
 
-    |Bit 	|7 6 5 4 			|3 2 1 0
-    |byte 1 	|MQTT Control Packet type (4) 	|Reserved
-    | 		|0 1 0 0 			|0 0 0 0
-    |byte 2 	|Remaining Length (2)
-    | 		|0 0 0 0 			|0 0 1 0
+    |Bit        |7      |6      |5      |4      |3      |2      |1      |0
+    |byte 1     |MQTT Control Packet type (4)   |Reserved
+    |           |0      |1      |0      |0      |0      |0      |0      |0
+    |byte 2     |Remaining Length (2)
+    |           |0      |1      |0      |0      |0      |0      |1      |0
 
 **Remaining Length**
 
@@ -1003,9 +1004,9 @@ PUBACK包用来响应QoS等级为1的PUBLISH包。
 
     Figure3.13 - PUBACK Packet variable header
 
-    |Bit 	|7 6 5 4 3 2 1 0
-    |byte 1 	|Packet Identifier MSB
-    |byte 2 	|Packet Identifier LSB
+    |Bit        |7 |6 |5 |4 |3 |2 |1 |0
+    |byte 1     |Packet Identifier MSB
+    |byte 2     |Packet Identifier LSB
 
 #### 3.4.3 载荷
 
@@ -1023,11 +1024,11 @@ PUBREC包用来响应QoS 2的PUBLISH包。这是QoS 2协议交换的第二个包
 
     Figure 3.14 – PUBREC Packet fixed header
 
-    |Bit 	|7 6 5 4 			|3 2 1 0
-    |byte 1 	|MQTT Control Packet type (5) 	|Reserved
-    | 		|0 1 0 1 			|0 0 0 0
-    |byte 2 	|Remaining Length(2)
-    | 		|0 0 0 0 			|0 0 1 0
+    |Bit        |7      |6      |5      |4      |3      |2      |1      |0
+    |byte 1     |MQTT Control Packet type (5)   |Reserved
+    |           |0      |1      |0      |1      |0      |0      |0      |0
+    |byte 2     |Remaining Length(2)
+    |           |0      |0      |0      |0      |0      |0      |1      |0
 
 **Remaining Length**
 
@@ -1039,9 +1040,9 @@ PUBREC包用来响应QoS 2的PUBLISH包。这是QoS 2协议交换的第二个包
 
     Figure 3.15 – PUBREC Packet variable header
     
-    |Bit 	|7 6 5 4 3 2 1 0
-    |byte 1 	|Packet Identifier MSB
-    |byte 2 	|Packet Identifier LSB
+    |Bit        |7 |6 |5 |4 |3 |2 |1 |0
+    |byte 1     |Packet Identifier MSB
+    |byte 2     |Packet Identifier LSB
 
 #### 3.5.3 载荷
 
@@ -1059,11 +1060,11 @@ PUBREL包用来响应PUBREC包。是QoS 2协议交换的第三部分。
 
     Figure 3.16 – PUBREL Packet fixed header
     
-    |Bit 	|7 6 5 4 			|3 2 1 0
-    |byte 1 	|MQTT Control Packet type (6) 	|Reserved
-    |       	|0 1 1 0 			|0 0 1 0
-    |byte 2 	|Remaining Length (2)
-    |       	|0 0 0 0 			|0 0 1 0
+    |Bit        |7      |6      |5      |4      |3      |2      |1      |0
+    |byte 1     |MQTT Control Packet type (6)   |Reserved
+    |           |0      |1      |1      |0      |0      |0      |1      |0
+    |byte 2     |Remaining Length (2)
+    |           |0      |0      |0      |0      |0      |0      |1      |0
 
 PUBREL控制包的固定包头的位3，2，1，0是保留位，而且必须被分别设置为0，0，1，0。服务端必须将其他值作为畸形，并且关闭网络连接[MQTT-3.6.1-1]。
 
@@ -1073,9 +1074,9 @@ PUBREL控制包的固定包头的位3，2，1，0是保留位，而且必须被�
 
     Figure 3.17 – PUBREL Packet variable header
     
-    |Bit 	|7 6 5 4 3 2 1 0
-    |byte 1 	|Packet Identifier MSB
-    |byte 2 	|Packet Identifier LSB
+    |Bit        |7 |6 |5 |4 |3 |2 |1 |0
+    |byte 1     |Packet Identifier MSB
+    |byte 2     |Packet Identifier LSB
 
 #### 3.6.3 载荷
 
@@ -1093,11 +1094,11 @@ PUBCOMP包用来响应PUBREL包。这是QoS 2协议交换的第四个也是最�
 
     Figure 3.18 – PUBCOMP Packet fixed header
     
-    |Bit 	|7 6 5 4 			|3 2 1 0
-    |byte 1 	|MQTT Control Packet type (7) 	|Reserved
-    | 		|0 1 1 1 			|0 0 0 0
-    |byte 2 	|Remaining Length (2)
-    | 		|0 0 0 0 			|0 0 1 0
+    |Bit        |7      |6      |5      |4      |3      |2      |1      |0
+    |byte 1     |MQTT Control Packet type (7)   |Reserved
+    |           |0      |1      |1      |1      |0      |0      |0      |0
+    |byte 2     |Remaining Length (2)
+    |           |0      |0      |0      |0      |0      |0      |1      |0
 
 **Remaining Length**
 
@@ -1109,9 +1110,9 @@ PUBCOMP包用来响应PUBREL包。这是QoS 2协议交换的第四个也是最�
 
     Figure 3.19 – PUBCOMP Packet variable header
 
-    |Bit 	|7 6 5 4 3 2 1 0
-    |byte 1 	|Packet Identifier MSB
-    |byte 2 	|Packet Identifier LSB
+    |Bit        |7 |6 |5 |4 |3 |2 |1 |0
+    |byte 1     |Packet Identifier MSB
+    |byte 2     |Packet Identifier LSB
 
 #### 3.7.3 载荷
 
@@ -1129,10 +1130,10 @@ SUBSCRIBE包从客户端发送到服务端创建一个或多个订阅。每个�
 
     Figure 3.20 – SUBSCRIBE Packet fixed header
     
-    |Bit 	|7 6 5 4 			|3 2 1 0
-    |byte 1 	|MQTT Control Packet type (8) 	|Reserved
-    | 		|1 0 0 0 			|0 0 1 0
-    |byte 2 	|Remaining Length
+    |Bit        |7      |6      |5      |4      |3      |2      |1      |0
+    |byte 1     |MQTT Control Packet type (8)   |Reserved
+    |           |1      |0      |0      |0      |0      |0      |1      |0
+    |byte 2     |Remaining Length
 
 SUBSCRIBE控制包的固定包头的3，2，1，0位是保留位，而且必须设置为0，0，1，0。服务端必须把其他值作为畸形对待，然后关闭网络连接[MQTT-3.8.1-1]。
 
@@ -1150,10 +1151,10 @@ Figure 3.21展示了带有包唯一标识10的可变包头。
 
     Figure 3.21 - Variable header with a Packet Identifier of 10, Non normative example
      
-    | 		|Description 			|7 6 5 4 3 2 1 0
+    |           |Description                    |7 |6 |5 |4 |3 |2 |1 |0
     |Packet Identifier
-    |byte 1 	|Packet Identifier MSB (0) 	|0 0 0 0 0 0 0 0
-    |byte 2 	|Packet Identifier LSB (10) 	|0 0 0 0 1 0 1 0
+    |byte 1     |Packet Identifier MSB (0)      |0 |0 |0 |0 |0 |0 |0 |0
+    |byte 2     |Packet Identifier LSB (10)     |0 |0 |0 |0 |1 |0 |1 |0
 
 #### 3.8.3 载荷
 
@@ -1165,14 +1166,14 @@ SUBSCRIBE包的载荷至少包含一个成对的话题过滤器/QoS。没有载�
 
     Figure 3.22 – SUBSCRIBE Packet payload format
     
-    |Description 	|7 6 5 4 3 2 	|1 0
+    |Description    |7 |6 |5 |4 |3 |2 |1 |0
     |Topic Filter
-    |byte 1 		|Length MSB
-    |byte 2 		|Length LSB
-    |bytes 3..N 	|Topic Filter
+    |byte 1         |Length MSB
+    |byte 2         |Length LSB
+    |bytes 3..N     |Topic Filter
     |Requested QoS
-    | 			|Reserved 	|QoS
-    |byte N+1 		|0 0 0 0 0 0 	|X X
+    |               |Reserved         |QoS
+    |byte N+1       |0 |0 |0 |0 |0 |0 |X |X
 
 QoS字节的高6位在当前版本的协议中没有使用。这是为未来预留的。如果载荷中预留的位非零，或者QoS不是0，1，2，那么服务端必须把SUBSCRIBE包当作畸形关闭网络连接[MQTT-3.8.3-4]。
 
@@ -1182,30 +1183,30 @@ Figure 3.23 - Payload byte format non normative example显示了SUBSCRIBE包的�
 
     Table 3.5 - Payload non normative example
     
-    |Topic Name 	|“a/b”
-    |Requested QoS 	|0x01
-    |Topic Name 	|“c/d”
-    |Requested QoS 	|0x02
+    |Topic Name     |“a/b”
+    |Requested QoS  |0x01
+    |Topic Name     |“c/d”
+    |Requested QoS  |0x02
 
     Figure 3.23 - Payload byte format non normative example
     
-    | 		|Description 		|7 6 5 4 3 2 1 0
+    |               |Description        |7 |6 |5 |4 |3 |2 |1 |0
     |Topic Filter
-    |byte 1 		|Length MSB (0) 	|0 0 0 0 0 0 0 0
-    |byte 2 		|Length LSB (3) 	|0 0 0 0 0 0 1 1
-    |byte 3 		|‘a’ (0x61) 		|0 1 1 0 0 0 0 1
-    |byte 4 		|‘/’ (0x2F) 		|0 0 1 0 1 1 1 1
-    |byte 5 		|‘b’ (0x62) 		|0 1 1 0 0 0 1 0
+    |byte 1         |Length MSB (0)     |0 |0 |0 |0 |0 |0 |0 |0
+    |byte 2         |Length LSB (3)     |0 |0 |0 |0 |0 |0 |1 |1
+    |byte 3         |‘a’ (0x61)         |0 |1 |1 |0 |0 |0 |0 |1
+    |byte 4         |‘/’ (0x2F)         |0 |0 |1 |0 |1 |1 |1 |1
+    |byte 5         |‘b’ (0x62)         |0 |1 |1 |0 |0 |0 |1 |0
     |Requested QoS
-    |byte 6 		|Requested QoS(1) 	|0 0 0 0 0 0 0 1
+    |byte 6         |Requested QoS(1)   |0 |0 |0 |0 |0 |0 |0 |1
     |Topic Filter
-    |byte 7 		|Length MSB (0) 	|0 0 0 0 0 0 0 0
-    |byte 8 		|Length LSB (3) 	|0 0 0 0 0 0 1 1
-    |byte 9 		|‘c’ (0x63) 		|0 1 1 0 0 0 1 1
-    |byte 10 	|‘/’ (0x2F) 		|0 0 1 0 1 1 1 1
-    |byte 11 	|‘d’ (0x64) 		|0 1 1 0 0 1 0 0
+    |byte 7         |Length MSB (0)     |0 |0 |0 |0 |0 |0 |0 |0
+    |byte 8         |Length LSB (3)     |0 |0 |0 |0 |0 |0 |1 |1
+    |byte 9         |‘c’ (0x63)         |0 |1 |1 |0 |0 |0 |1 |1
+    |byte 10        |‘/’ (0x2F)         |0 |0 |1 |0 |1 |1 |1 |1
+    |byte 11        |‘d’ (0x64)         |0 |1 |1 |0 |0 |1 |0 |0
     |Requested QoS
-    |byte 12 	|Requested QoS(2) 	|0 0 0 0 0 0 1 0
+    |byte 12        |Requested QoS(2)   |0 |0 |0 |0 |0 |0 |1 |0
 
 #### 3.8.4 响应
 
@@ -1241,10 +1242,10 @@ SUBACK包包含了返回码的列表，指定了SUBSCRIBE包中的每个订阅�
 
     Figure 3.24 – SUBACK Packet fixed header
     
-    |Bit 	|7 6 5 4 			|3 2 1 0
-    |byte 1 	|MQTT Control Packet type (9) 	|Reserved
-    | 		|1 0 0 1 			|0 0 0 0
-    |byte 2 	|Remaining Length
+    |Bit        |7      |6      |5      |4      |3      |2      |1      |0
+    |byte 1     |MQTT Control Packet type (9)   |Reserved
+    |           |1      |0      |0      |1      |0      |0      |0      |0
+    |byte 2     |Remaining Length
 
 **Remaining Length**
 
@@ -1256,9 +1257,9 @@ SUBACK包包含了返回码的列表，指定了SUBSCRIBE包中的每个订阅�
 
     Figure 3.25 – SUBACK Packet variable header
     
-    |Bit 	|7 6 5 4 3 2 1 0
-    |byte 1 	|Packet Identifier MSB
-    |byte 2 	|Packet Identifier LSB
+    |Bit        |7 |6 |5 |4 |3 |2 |1 |0
+    |byte 1     |Packet Identifier MSB
+    |byte 2     |Packet Identifier LSB
 
 #### 3.9.3 载荷
 
@@ -1268,9 +1269,9 @@ Figure 3.26 - Payload format 展示了载荷中编码在一个字节中的返回
 
     Figure 3.26 – SUBACK Packet payload format
     
-    |Bit 	|7 6 5 4 3 2 1 0
-    | 		|Return Code
-    |byte 	|1 X 0 0 0 0 0 X X
+    |Bit     |7 |6 |5 |4 |3 |2 |1 |0
+    |        |Return Code
+    |byte 1  |X |0 |0 |0 |0 |0 |X |X
 
 允许的返回码：
 
@@ -1287,16 +1288,16 @@ Figure 3.27 - Payload byte format non normative example 展示了SUBACK包的载
 
     Table 3.6 - Payload non normative example
     
-    |Success - Maximum QoS 0 	|0
-    |Success - Maximum QoS 2 	|2
-    |Failure 			|128
+    |Success - Maximum QoS 0    |0
+    |Success - Maximum QoS 2    |2
+    |Failure                    |128
 
     Figure 3.27 - Payload byte format non normative example
     
-    | 		|Description 			|7 6 5 4 3 2 1 0
-    |byte 1 	|Success - Maximum QoS 0 	|0 0 0 0 0 0 0 0
-    |byte 2 	|Success - Maximum QoS 2 	|0 0 0 0 0 0 1 0
-    |byte 3 	|Failure 			|1 0 0 0 0 0 0 0
+    |           |Description                |7 |6 |5 |4 |3 |2 |1 |0
+    |byte 1     |Success - Maximum QoS 0    |0 |0 |0 |0 |0 |0 |0 |0
+    |byte 2     |Success - Maximum QoS 2    |0 |0 |0 |0 |0 |0 |1 |0
+    |byte 3     |Failure                    |1 |0 |0 |0 |0 |0 |0 |0
 
 ### 3.10 UNSUBSCRIBE - 退订话题
 
@@ -1306,10 +1307,10 @@ UNSUBSCRIBE包从客户端发往服务端，用来退订话题。
 
     Figure 3.28 – UNSUBSCRIBE Packet Fixed header
     
-    |Bit	|7 6 5 4 			|3 2 1 0
-    |byte 1 	|MQTT Control Packet type (10) 	|Reserved
-    | 		|1 0 1 0 			|0 0 1 0
-    |byte 2 	|Remaining Length
+    |Bit        |7      |6      |5      |4      |3      |2      |1      |0
+    |byte 1     |MQTT Control Packet type (10)  |Reserved
+    |           |1      |0      |1      |0      |0      |0      |1      |0
+    |byte 2     |Remaining Length
 
 UNSUBSCRIBE控制包固定包头的3，2，1，0位是预留的，而且必须分别被设置为0，0，1，0。服务端必须把其他值作为畸形，并且关闭网络连接[MQTT-3.10.1-1]。
 
@@ -1323,9 +1324,9 @@ UNSUBSCRIBE控制包固定包头的3，2，1，0位是预留的，而且必须�
 
     Figure 3.29 – UNSUBSCRIBE Packet variable header
     
-    |Bit 	|7 6 5 4 3 2 1 0
-    |byte 1 	|Packet Identifier MSB
-    |byte 2 	|Packet Identifier LSB
+    |Bit        |7 |6 |5 |4 |3 |2 |1 |0
+    |byte 1     |Packet Identifier MSB
+    |byte 2     |Packet Identifier LSB
 
 #### 3.10.3 载荷
 
@@ -1339,24 +1340,24 @@ Figure 3.30 - Payload byte format non normative example 显示了UNSUBSCRIBE包�
 
     Table3.7 - Payload non normative example
     
-    |Topic Filter 	|“a/b”
-    |Topic Filter 	|“c/d”
+    |Topic Filter   |“a/b”
+    |Topic Filter   |“c/d”
 
     Figure 3.30 - Payload byte format non normative example
     
-    | 		|Description 		|7 6 5 4 3 2 1 0
+    |           |Description        |7 |6 |5 |4 |3 |2 |1 |0
     |Topic Filter
-    |byte 1 	|Length MSB (0) 	|0 0 0 0 0 0 0 0
-    |byte 2 	|Length LSB (3) 	|0 0 0 0 0 0 1 1
-    |byte 3 	|‘a’ (0x61) 		|0 1 1 0 0 0 0 1
-    |byte 4 	|‘/’ (0x2F) 		|0 0 1 0 1 1 1 1
-    |byte 5 	|‘b’ (0x62) 		|0 1 1 0 0 0 1 0
+    |byte 1     |Length MSB (0)     |0 |0 |0 |0 |0 |0 |0 |0
+    |byte 2     |Length LSB (3)     |0 |0 |0 |0 |0 |0 |1 |1
+    |byte 3     |‘a’ (0x61)         |0 |1 |1 |0 |0 |0 |0 |1
+    |byte 4     |‘/’ (0x2F)         |0 |0 |1 |0 |1 |1 |1 |1
+    |byte 5     |‘b’ (0x62)         |0 |1 |1 |0 |0 |0 |1 |0
     |Topic Filter
-    |byte 6 	|Length MSB (0) 	|0 0 0 0 0 0 0 0
-    |byte 7 	|Length LSB (3) 	|0 0 0 0 0 0 1 1
-    |byte 8 	|‘c’ (0x63) 		|0 1 1 0 0 0 1 1
-    |byte 9 	|‘/’ (0x2F) 		|0 0 1 0 1 1 1 1
-    |byte 10 	|‘d’ (0x64) 		|0 1 1 0 0 1 0 0
+    |byte 6     |Length MSB (0)     |0 |0 |0 |0 |0 |0 |0 |0
+    |byte 7     |Length LSB (3)     |0 |0 |0 |0 |0 |0 |1 |1
+    |byte 8     |‘c’ (0x63)         |0 |1 |1 |0 |0 |0 |1 |1
+    |byte 9     |‘/’ (0x2F)         |0 |0 |1 |0 |1 |1 |1 |1
+    |byte 10    |‘d’ (0x64)         |0 |1 |1 |0 |0 |1 |0 |0
 
 #### 3.10.4 响应
 
@@ -1380,11 +1381,11 @@ UNSUBACK包从服务端发往客户端来确认收到UNSUBSCRIBE包。
 
     Figure 3.31 – UNSUBACK Packet fixed header
     
-    |Bit 	|7 6 5 4 			|3 2 1 0
-    |byte 1 	|MQTT Control Packet type (11) 	|Reserved
-    | 		|1 0 1 1 			|0 0 0 0
-    |byte 2 	|Remaining Length (2)
-    | 		|0 0 0 0 			|0 0 1 0
+    |Bit        |7      |6      |5      |4      |3      |2      |1      |0
+    |byte 1     |MQTT Control Packet type (11)  |Reserved
+    |           |1      |0      |1      |1      |0      |0      |0      |0
+    |byte 2     |Remaining Length (2)
+    |           |0      |0      |0      |0      |0      |0      |1      |0
 
 **Remaining Length**
 
@@ -1396,9 +1397,9 @@ UNSUBACK包从服务端发往客户端来确认收到UNSUBSCRIBE包。
 
     Figure 3.32 – UNSUBACK Packet variable header
     
-    |Bit 	|7 6 5 4 3 2 1 0
-    |byte 1 	|Packet Identifier MSB
-    |byte 2 	|Packet Identifier LSB
+    |Bit        |7 |6 |5 |4 |3 |2 |1 |0
+    |byte 1     |Packet Identifier MSB
+    |byte 2     |Packet Identifier LSB
 
 #### 3.11.3 载荷
 
@@ -1418,11 +1419,11 @@ PINGREQ包从客户端发往服务端，可以用来：
 
     Figure 3.33 – PINGREQ Packet fixed header
     
-    |Bit 	|7 6 5 4 			|3 2 1 0
-    |byte 1 	|MQTT Control Packet type (12) 	|Reserved
-    | 		|1 1 0 0 			|0 0 0 0
-    |byte 2 	|Remaining Length (0)
-    | 		|0 0 0 0 			|0 0 0 0
+    |Bit        |7      |6      |5      |4      |3      |2      |1      |0
+    |byte 1     |MQTT Control Packet type (12)  |Reserved
+    |           |1      |1      |0      |0      |0      |0      |0      |0
+    |byte 2     |Remaining Length (0)
+    |           |0      |0      |0      |0      |0      |0      |0      |0
 
 #### 3.12.2 可变包头
 
@@ -1446,11 +1447,11 @@ PINGRESP包从服务端发送给客户端来响应PINGREQ包。它代表服务�
 
     |Figure 3.34 – PINGRESP Packet fixed header
 
-    |Bit 	|7 6 5 4 			|3 2 1 0
-    |byte 1 	|MQTT Control Packet type (13) 	|Reserved
-    | 		|1 1 0 0 			|0 0 0 0
-    |byte 2 	|Remaining Length (0)
-    | 		|0 0 0 0 			|0 0 0 0
+    |Bit        |7      |6      |5      |4      |3      |2      |1      |0
+    |byte 1     |MQTT Control Packet type (13)  |Reserved
+    |           |1      |1      |0      |0      |0      |0      |0      |0
+    |byte 2     |Remaining Length (0)
+    |           |0      |0      |0      |0      |0      |0      |0      |0
 
 #### 3.13.2 可变包头
 
@@ -1468,11 +1469,11 @@ DISCONNECT包是客户端发给服务端的最后一个控制包。它表示客�
 
     |Figure 3.35 – DISCONNECT Packet fixed header
 
-    |Bit 	|7 6 5 4 			|3 2 1 0
-    |byte 1 	|MQTT Control Packet type (14) 	|Reserved
-    | 		|1 1 0 0 			|0 0 0 0
-    |byte 2 	|Remaining Length (0)
-    | 		|0 0 0 0 			|0 0 0 0
+    |Bit        |7      |6      |5      |4      |3      |2      |1      |0
+    |byte 1     |MQTT Control Packet type (14)  |Reserved
+    |           |1      |1      |0      |0      |0      |0      |0      |0
+    |byte 2     |Remaining Length (0)
+    |           |0      |0      |0      |0      |0      |0      |0      |0
 
 #### 3.14.2 可变包头
 
@@ -1563,10 +1564,10 @@ MQTT根据质量服务（QoS）等级分发应用消息。分发协议是对称�
 
     Figure 4.1 – QoS 0 protocol flow diagram, non normative example
     
-    |Sender Action 		|Control Packet 		|Receiver Action
-    |PUBLISH QoS 0, DUP=0 	| 				|
-    | 				|----------> 			|
-    | 				|				|Deliver Application Message to appropriate onward recipient(s)
+    |Sender Action      `   |Control Packet     |Receiver Action
+    |PUBLISH QoS 0, DUP=0   |                   |
+    |                       |---------->        |
+    |                       |                   |Deliver Application Message to appropriate onward recipient(s)
 
 #### 4.3.2 QoS 1:最少分发一次
 
@@ -1593,12 +1594,12 @@ MQTT根据质量服务（QoS）等级分发应用消息。分发协议是对称�
 
     Figure 4.2 – QoS 1 protocol flow diagram, non normative example
     
-    |Sender Action 					|Control Packet 	|Receiver action
-    |Store message 					| 			|
-    |Send PUBLISH QoS 1, DUP 0, <Packet Identifier> 	|----------> 		|
-    | 							| 			|Initiate onward delivery of the Application Message1
-    | 							|<---------- 		|Send PUBACK <Packet Identifier>
-    |Discard message 					| 			|
+    |Sender Action                                      |Control Packet     |Receiver action
+    |Store message                                      |                   |
+    |Send PUBLISH QoS 1, DUP 0, <Packet Identifier>     |---------->        |
+    |                                                   |                   |Initiate onward delivery of the Application Message1
+    |                                                   |<----------           |Send PUBACK <Packet Identifier>
+    |Discard message                                    |                   |
 
 ><sup>1<sup>接收者不需要在发送PUBACK之前完整的分发应用消息。当原始的发送者收到PUBACK包，应用消息的所属关系就转给了接收者。
 
@@ -1634,20 +1635,20 @@ QoS 2消息的可变包头包含包唯一标识。2.3.1节提供了更多关于�
 
     Figure 4.3 – QoS 2 protocol flow diagram, non normative example
     
-    |Sender Action 						|Control Packet 	|Receiver Action
-    |Store message 					        | 			| 
-    |PUBLISH QoS 2, DUP 0 <Packet Identifier> 			|			| 
-    | 								|----------> 		|
-    | 								|			|Method A, Store message or Method B, Store <Packet Identifier> then Initiate onward delivery of the Application Message1
-    | 								|			|PUBREC <Packet Identifier>
-    | 								|<---------- 		|
-    |Discard message, Store PUBREC received <Packet Identifier> |			|
-    |PUBREL <Packet Identifier> 				| 			|
-    | 								|----------> 		|
-    | 								|			|Method A, Initiate onward delivery of the Application Message1  then discard message or Method B, Discard <Packet Identifier>
-    | 								|			|Send PUBCOMP <Packet Identifier> 
-    | 								|<----------  		|
-    |Discard stored state 					| 			|
+    |Sender Action                                              |Control Packet |Receiver Action
+    |Store message                                              |               | 
+    |PUBLISH QoS 2, DUP 0 <Packet Identifier>                   |               | 
+    |                                                           |---------->    |
+    |                                                           |               |Method A, Store message or Method B, Store <Packet Identifier> then Initiate onward delivery of the Application Message1
+    |                                                           |               |PUBREC <Packet Identifier>
+    |                                                           |<----------    |
+    |Discard message, Store PUBREC received <Packet Identifier> |               |
+    |PUBREL <Packet Identifier>                                 |               |
+    |                                                           |---------->        |
+    |                                                           |               |Method A, Initiate onward delivery of the Application Message1  then discard message or Method B, Discard <Packet Identifier>
+    |                                                           |               |Send PUBCOMP <Packet Identifier> 
+    |                                                           |<----------        |
+    |Discard stored state                                       |               |
 
 ><sup>1<sup>接收者不需要在发送PUBACK之前完整的分发应用消息。当原始的发送者收到PUBACK包，应用消息的所属关系就转给了接收者。
 
@@ -1997,6 +1998,7 @@ MQTT服务端只有在下列陈述都满足的情况下才算符合本规范：
 1. 服务端发送的所有控制包格式都符合第2章和第3章的描述。
 2. 符合4.7节描述的话题匹配规则。
 3. 满足所有下列章节中必须性的要求，除非指明只适用于客户端。
+
     - 第1章 介绍
     - 第2章 MQTT控制包格式
     - 第3章 MQTT控制包
