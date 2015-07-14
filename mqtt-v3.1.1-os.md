@@ -1560,14 +1560,14 @@ MQTT根据质量服务（QoS）等级分发应用消息。分发协议是对称�
 
 在QoS 0的分发协议中，接收者
 
-- 接收者在收到PUBLISH包的时候就相当于接受了所有权。
+- 接收者在收到PUBLISH包的时候就相当于接受了所有权。    
 
-    Figure 4.1 – QoS 0 protocol flow diagram, non normative example
+Figure 4.1 – QoS 0 protocol flow diagram, non normative example
     
-    |Sender Action      `   |Control Packet     |Receiver Action
+    |Sender Action          |Control Packet     |Receiver Action
     |PUBLISH QoS 0, DUP=0   |                   |
     |                       |---------->        |
-    |                       |                   |Deliver Application Message to appropriate onward recipient(s)
+    |                       |                   |Deliver Application Mes    to appropriate onward recipient(s)
 
 #### 4.3.2 QoS 1:最少分发一次
 
